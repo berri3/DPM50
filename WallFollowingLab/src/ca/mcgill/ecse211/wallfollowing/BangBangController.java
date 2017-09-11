@@ -10,7 +10,7 @@ public class BangBangController implements UltrasonicController {
   private final int motorHigh;
   private int distance; //Distance from the wall(?)
   private int distError; //
-  private static final int DELTASPD = 100;
+  private static final int DELTASPD = 150;
 
   public BangBangController(int bandCenter, int bandwidth, int motorLow, int motorHigh) {
     // Default Constructor
@@ -20,8 +20,8 @@ public class BangBangController implements UltrasonicController {
     this.motorHigh = motorHigh;
     WallFollowingLab.leftMotor.setSpeed(motorHigh); // Start robot moving forward
     WallFollowingLab.rightMotor.setSpeed(motorHigh);
-    WallFollowingLab.leftMotor.forward();
-    WallFollowingLab.rightMotor.forward();
+    WallFollowingLab.leftMotor.backward();
+    WallFollowingLab.rightMotor.backward();
   }
 
   @Override
@@ -32,22 +32,22 @@ public class BangBangController implements UltrasonicController {
     if (Math.abs(distError) <= bandwidth){
     	WallFollowingLab.leftMotor.setSpeed(motorHigh); // Start robot moving forward
     	WallFollowingLab.rightMotor.setSpeed(motorHigh);
-    	WallFollowingLab.leftMotor.forward();
+    	WallFollowingLab.leftMotor.backward();
+    	WallFollowingLab.rightMotor.backward();
+    }
+    
+    else if(distError > 0){ //turn away from the wall
+    	WallFollowingLab.leftMotor.setSpeed(motorHigh + DELTASPD);
+    	WallFollowingLab.rightMotor.setSpeed(motorLow);
+    	WallFollowingLab.leftMotor.backward();
     	WallFollowingLab.rightMotor.forward();
     }
     
-    else if(distError > 0){
-    	WallFollowingLab.leftMotor.setSpeed(motorHigh);
-    	WallFollowingLab.rightMotor.setSpeed(motorHigh - DELTASPD);
+    else if(distError < 0){ //turn towards the wall
+    	WallFollowingLab.leftMotor.setSpeed(motorLow);
+    	WallFollowingLab.rightMotor.setSpeed(motorHigh + DELTASPD);
     	WallFollowingLab.leftMotor.forward();
-    	WallFollowingLab.rightMotor.forward();
-    }
-    
-    else if(distError < 0){
-    	WallFollowingLab.leftMotor.setSpeed(motorHigh  - DELTASPD);
-    	WallFollowingLab.rightMotor.setSpeed(motorHigh);
-    	WallFollowingLab.leftMotor.forward();
-    	WallFollowingLab.rightMotor.forward();
+    	WallFollowingLab.rightMotor.backward();
     }
   }
 

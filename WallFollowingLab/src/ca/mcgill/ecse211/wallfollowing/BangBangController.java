@@ -4,11 +4,13 @@ import lejos.hardware.motor.*;
 
 public class BangBangController implements UltrasonicController {
 
-  private final int bandCenter;
-  private final int bandwidth;
+  private final int bandCenter; //constant offset from the wall
+  private final int bandwidth; //width of dead band (allowed error (?))
   private final int motorLow;
   private final int motorHigh;
-  private int distance;
+  private int distance; //Distance from the wall(?)
+  private int distError; //
+  private static final int DELTASPD = 100;
 
   public BangBangController(int bandCenter, int bandwidth, int motorLow, int motorHigh) {
     // Default Constructor
@@ -25,7 +27,28 @@ public class BangBangController implements UltrasonicController {
   @Override
   public void processUSData(int distance) {
     this.distance = distance;
-    // TODO: process a movement based on the us distance passed in (BANG-BANG style)
+    distError = bandCenter - this.distance;
+    
+    if (Math.abs(distError) <= bandwidth){
+    	WallFollowingLab.leftMotor.setSpeed(motorHigh); // Start robot moving forward
+    	WallFollowingLab.rightMotor.setSpeed(motorHigh);
+    	WallFollowingLab.leftMotor.forward();
+    	WallFollowingLab.rightMotor.forward();
+    }
+    
+    else if(distError > 0){
+    	WallFollowingLab.leftMotor.setSpeed(motorHigh);
+    	WallFollowingLab.rightMotor.setSpeed(motorHigh - DELTASPD);
+    	WallFollowingLab.leftMotor.forward();
+    	WallFollowingLab.rightMotor.forward();
+    }
+    
+    else if(distError < 0){
+    	WallFollowingLab.leftMotor.setSpeed(motorHigh  - DELTASPD);
+    	WallFollowingLab.rightMotor.setSpeed(motorHigh);
+    	WallFollowingLab.leftMotor.forward();
+    	WallFollowingLab.rightMotor.forward();
+    }
   }
 
   @Override

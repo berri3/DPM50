@@ -28,7 +28,7 @@ public class BangBangController implements UltrasonicController {
   @Override
   public void processUSData(int distance) {
     this.distance = distance;
-    distError = bandCenter - this.distance;
+    distError = bandCenter - distance;
     
 //    if (distance > 200) { //really too far; probably because the wall is ending
 //    	WallFollowingLab.leftMotor.setSpeed(motorReallyHigh);

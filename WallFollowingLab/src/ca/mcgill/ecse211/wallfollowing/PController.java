@@ -5,13 +5,16 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 public class PController implements UltrasonicController {
 
   /* Constants */
-  private static final int MOTOR_SPEED = 200;
+  private static final int MOTOR_SPEED = 100;
   private static final int FILTER_OUT = 20;
 
   private final int bandCenter;
   private final int bandWidth;
   private int distance;
   private int filterControl;
+  private int distError; //error
+  private int correction;
+  private int deltaSpeed;
 
   public PController(int bandCenter, int bandwidth) {
     this.bandCenter = bandCenter;
@@ -48,6 +51,36 @@ public class PController implements UltrasonicController {
     }
 
     // TODO: process a movement based on the us distance passed in (P style)
+    this.distance = distance;
+    distError = bandCenter - distance;
+    
+    if (Math.abs(distError) <= bandWidth){
+    	WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED); // Start robot moving forward
+    	WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED);
+    	WallFollowingLab.leftMotor.forward();
+    	WallFollowingLab.rightMotor.forward();
+    }
+    
+    
+    //else if not within acceptable error, adjust the two motors accordingly to the amplitude of the error
+    //implement function with input the error and output the deltaspd to increase or reduce
+    
+    else { 
+    	
+    	correction = distError * 10;
+    	
+    	if (correction < 75) //capping the speed at 400
+    		deltaSpeed = correction;
+    	else
+    		deltaSpeed = 75;
+    	
+    	WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED + deltaSpeed);
+    	WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED - deltaSpeed);
+    	WallFollowingLab.leftMotor.forward();
+    	WallFollowingLab.rightMotor.forward();
+    }
+    
+
   }
 
 

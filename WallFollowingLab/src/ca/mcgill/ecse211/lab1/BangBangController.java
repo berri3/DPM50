@@ -78,7 +78,7 @@ public class BangBangController implements UltrasonicController {
     else if(distError < 0){ //too far; turn towards the wall
     	//reduce the left motor a bit less than the DELTASPD since the robot
     	//often turns too much and makes a u-turn instead
-    	WallFollowingLab.leftMotor.setSpeed(motorHigh - (DELTASPD/3));
+    	WallFollowingLab.leftMotor.setSpeed(motorHigh - (DELTASPD/4));
     	WallFollowingLab.rightMotor.setSpeed(motorHigh + DELTASPD);
     	WallFollowingLab.leftMotor.forward();
     	WallFollowingLab.rightMotor.forward();

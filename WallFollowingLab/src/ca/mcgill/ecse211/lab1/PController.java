@@ -91,7 +91,7 @@ public class PController implements UltrasonicController {
     	else
     		deltaSpeed = 100;
     	
-    	WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED);
+    	WallFollowingLab.leftMotor.setSpeed((int) (MOTOR_SPEED - deltaSpeed/5));
     	WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED + deltaSpeed);
     	WallFollowingLab.leftMotor.forward();
     	WallFollowingLab.rightMotor.forward();

@@ -68,12 +68,12 @@ public class PController implements UltrasonicController {
     else if(distError > 0){ //turn away from the wall{ 
     	
     	//correction based on the error times a factor (10)
-    	correction = Math.abs(distError) * 5;
+    	correction = Math.abs(distError) * 8;
     	
-    	if (correction < 80) //capping the speed at 85
+    	if (correction < 120) //capping the speed at 85
     		deltaSpeed = correction;
     	else
-    		deltaSpeed = 80;
+    		deltaSpeed = 120;
     	
     	WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED + deltaSpeed);
     	WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED - deltaSpeed);
@@ -82,14 +82,14 @@ public class PController implements UltrasonicController {
     }
     else if(distError < 0){  //turn towards the wall
     	//correction based on the error times a factor (10)
-    	correction = Math.abs(distError) * 5;
+    	correction = Math.abs(distError) * 6;
     	
-    	if (Math.abs(correction)< 80) //capping the speed at 85
+    	if (Math.abs(correction)< 100) //capping the speed at 85
     		deltaSpeed = correction;
     	else
-    		deltaSpeed = 80;
+    		deltaSpeed = 100;
     	
-    	WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED - deltaSpeed/2);
+    	WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED);
     	WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED + deltaSpeed);
     	WallFollowingLab.leftMotor.forward();
     	WallFollowingLab.rightMotor.forward();

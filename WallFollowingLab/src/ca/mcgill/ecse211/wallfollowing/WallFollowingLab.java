@@ -11,7 +11,7 @@ public class WallFollowingLab {
 
   // Parameters: adjust these for desired performance
 
-  private static final int bandCenter = 35; // Offset from the wall (cm)
+  private static final int bandCenter = 33; // Offset from the wall (cm)
   private static final int bandWidth = 4; // Width of dead band (cm)
   private static final int motorLow = 110; // Speed of slower rotating wheel (deg/sec)
   private static final int motorHigh = 110; // Speed of the faster rotating wheel (deg/seec)
@@ -22,6 +22,7 @@ public class WallFollowingLab {
       new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
   public static final EV3LargeRegulatedMotor rightMotor =
       new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+  
 
   // Main entry point - instantiate objects used and set up sensor
 
@@ -51,7 +52,7 @@ public class WallFollowingLab {
     SampleProvider usDistance = usSensor.getMode("Distance"); // usDistance provides samples from
                                                               // this instance
     float[] usData = new float[usDistance.sampleSize()]; // usData is the buffer in which data are
-                                                         // returned
+                                                        // returned
 
     // Setup Printer
     // This thread prints status information in the background

@@ -14,6 +14,9 @@ public class Printer extends Thread {
 
   private UltrasonicController cont;
   private final int option;
+  
+  private int leftMotorSpeed;
+  private int rightMotorSpeed;
 
   public Printer(int option, UltrasonicController cont) {
     this.cont = cont;
@@ -28,10 +31,22 @@ public class Printer extends Thread {
       t.drawString("Controller Type is... ", 0, 0); // print header
       if (this.option == Button.ID_LEFT)
         t.drawString("BangBang", 0, 1);
+//     	t.drawString("Real: " , x, y);
       else if (this.option == Button.ID_RIGHT)
         t.drawString("P type", 0, 1);
+//      t.drawString("Real: " , x, y);
       t.drawString("US Distance: " + cont.readUSDistance(), 0, 2); // print last US reading
-
+      
+      
+      
+      //print the speed of the two motors?
+      leftMotorSpeed = WallFollowingLab.leftMotor.getRotationSpeed();
+      rightMotorSpeed = WallFollowingLab.rightMotor.getRotationSpeed();
+      
+      
+      t.drawString("Left: " + leftMotorSpeed, 0, 3);
+      t.drawString("Right: " + rightMotorSpeed, 0, 4);
+      
       try {
         Thread.sleep(200); // sleep for 200 mS
       } catch (Exception e) {

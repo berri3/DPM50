@@ -5,7 +5,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 public class PController implements UltrasonicController {
 
   /* Constants */
-  private static final int MOTOR_SPEED = 100;
+  private static final int MOTOR_SPEED = 135;
   private static final int FILTER_OUT = 20;
 
   private final int bandCenter;
@@ -14,7 +14,7 @@ public class PController implements UltrasonicController {
   private int filterControl;
   private int distError; //error
   private int correction;
-  private int deltaSpeed;
+  private int deltaSpeed; //
 
   public PController(int bandCenter, int bandwidth) {
     this.bandCenter = bandCenter;
@@ -42,7 +42,7 @@ public class PController implements UltrasonicController {
     } else if (distance >= 255) {
       // We have repeated large values, so there must actually be nothing
       // there: leave the distance alone
-      this.distance = distance;
+      this.distance = 255; //capped at 255
     } else {
       // distance went below 255: reset filter and leave
       // distance alone.
@@ -51,8 +51,8 @@ public class PController implements UltrasonicController {
     }
 
     // TODO: process a movement based on the us distance passed in (P style)
-    this.distance = distance;
-    distError = bandCenter - distance;
+//    this.distance = distance;
+    distError = bandCenter - this.distance;
     
     if (Math.abs(distError) <= bandWidth){
     	WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED); // Start robot moving forward
@@ -65,21 +65,36 @@ public class PController implements UltrasonicController {
     //else if not within acceptable error, adjust the two motors accordingly to the amplitude of the error
     //implement function with input the error and output the deltaspd to increase or reduce
     
-    else { 
+    else if(distError > 0){ //turn away from the wall{ 
     	
-    	correction = distError * 10;
+    	//correction based on the error times a factor (10)
+    	correction = Math.abs(distError) * 5;
     	
-    	if (correction < 75) //capping the speed at 400
+    	if (correction < 80) //capping the speed at 85
     		deltaSpeed = correction;
     	else
-    		deltaSpeed = 75;
+    		deltaSpeed = 80;
     	
     	WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED + deltaSpeed);
     	WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED - deltaSpeed);
     	WallFollowingLab.leftMotor.forward();
     	WallFollowingLab.rightMotor.forward();
     }
-    
+    else if(distError < 0){  //turn towards the wall
+    	//correction based on the error times a factor (10)
+    	correction = Math.abs(distError) * 5;
+    	
+    	if (Math.abs(correction)< 80) //capping the speed at 85
+    		deltaSpeed = correction;
+    	else
+    		deltaSpeed = 80;
+    	
+    	WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED - deltaSpeed/2);
+    	WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED + deltaSpeed);
+    	WallFollowingLab.leftMotor.forward();
+    	WallFollowingLab.rightMotor.forward();
+    	
+    }
 
   }
 

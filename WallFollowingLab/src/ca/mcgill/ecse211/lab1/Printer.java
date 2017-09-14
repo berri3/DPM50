@@ -1,4 +1,4 @@
-package ca.mcgill.ecse211.wallfollowing;
+package ca.mcgill.ecse211.lab1;
 
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
@@ -31,21 +31,16 @@ public class Printer extends Thread {
       t.drawString("Controller Type is... ", 0, 0); // print header
       if (this.option == Button.ID_LEFT)
         t.drawString("BangBang", 0, 1);
-//     	t.drawString("Real: " , x, y);
       else if (this.option == Button.ID_RIGHT)
         t.drawString("P type", 0, 1);
-//      t.drawString("Real: " , x, y);
       t.drawString("US Distance: " + cont.readUSDistance(), 0, 2); // print last US reading
       
-      
-      
-      //print the speed of the two motors?
+      //print on the LCD the current speed of the two motors
       leftMotorSpeed = WallFollowingLab.leftMotor.getRotationSpeed();
       rightMotorSpeed = WallFollowingLab.rightMotor.getRotationSpeed();
       
-      
-      t.drawString("Left: " + leftMotorSpeed, 0, 3);
-      t.drawString("Right: " + rightMotorSpeed, 0, 4);
+      t.drawString("Left mot.: " + leftMotorSpeed, 0, 3);
+      t.drawString("Right mot.: " + rightMotorSpeed, 0, 4);
       
       try {
         Thread.sleep(200); // sleep for 200 mS

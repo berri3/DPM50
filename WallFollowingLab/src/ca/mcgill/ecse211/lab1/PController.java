@@ -1,25 +1,25 @@
-package ca.mcgill.ecse211.wallfollowing;
+package ca.mcgill.ecse211.lab1;
 
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class PController implements UltrasonicController {
 
   /* Constants */
-  private static final int MOTOR_SPEED = 135;
-  private static final int FILTER_OUT = 20;
+  private static final int MOTOR_SPEED = 135; //default motor speed
+  private static final int FILTER_OUT = 20; //used for the filter below
 
   private final int bandCenter;
   private final int bandWidth;
   private int distance;
   private int filterControl;
-  private int distError; //error
-  private int correction;
-  private int deltaSpeed; //
+  private int distError;
+  private int correction; //correction to be applied to the default motor speed
+  private int deltaSpeed; //variable delta speed to be applied to the wheels
 
   public PController(int bandCenter, int bandwidth) {
     this.bandCenter = bandCenter;
     this.bandWidth = bandwidth;
-    this.filterControl = 0;
+    this.filterControl = 0; //initialize the filter control to 0
 
     WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED); // Initalize motor rolling forward
     WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED);
@@ -49,11 +49,12 @@ public class PController implements UltrasonicController {
       filterControl = 0;
       this.distance = distance;
     }
-
-    // TODO: process a movement based on the us distance passed in (P style)
-//    this.distance = distance;
-    distError = bandCenter - this.distance;
+    //calculate the error based on the measured and filtered distance
+    //versus the wanted distance
+    distError = bandCenter - this.distance; 
     
+    
+    //error within acceptable limit; move forward normally
     if (Math.abs(distError) <= bandWidth){
     	WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED); // Start robot moving forward
     	WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED);
@@ -61,18 +62,19 @@ public class PController implements UltrasonicController {
     	WallFollowingLab.rightMotor.forward();
     }
     
-    
     //else if not within acceptable error, adjust the two motors accordingly to the amplitude of the error
-    //implement function with input the error and output the deltaspd to increase or reduce
+    //implement a function as input the error and as output the correction to increase or reduce
     
-    else if(distError > 0){ //turn away from the wall{ 
+    //Note: two different cases for too close/far since the behaviour is programmed differently
+    else if(distError > 0){ //too close
     	
-    	//correction based on the error times a factor (10)
+    	//correction based on the error times a factor (8)
     	correction = Math.abs(distError) * 8;
     	
-    	if (correction < 120) //capping the speed at 85
+    	if (correction < 120) //capping the speed at 120 to avoid the robot running too fast
+    		//robot not too fast: the deltaSpeed is the correction
     		deltaSpeed = correction;
-    	else
+    	else //too fast of a correction; set the change to 120
     		deltaSpeed = 120;
     	
     	WallFollowingLab.leftMotor.setSpeed(MOTOR_SPEED + deltaSpeed);
@@ -81,10 +83,10 @@ public class PController implements UltrasonicController {
     	WallFollowingLab.rightMotor.forward();
     }
     else if(distError < 0){  //turn towards the wall
-    	//correction based on the error times a factor (10)
+    	//correction based on the error times a factor (6)
     	correction = Math.abs(distError) * 6;
     	
-    	if (Math.abs(correction)< 100) //capping the speed at 85
+    	if (Math.abs(correction)< 100) //capping the speed at 100
     		deltaSpeed = correction;
     	else
     		deltaSpeed = 100;

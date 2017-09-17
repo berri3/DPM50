@@ -14,7 +14,7 @@ public class BangBangController implements UltrasonicController {
   private int filterControl; //used for the filter
   
   private static final int DELTASPD = 75; //default change in motor speed when adjusting itself
-  private static final int FILTER_OUT = 20; //used for the below filter
+  private static final int FILTER_OUT = 50; //used for the below filter
 
   public BangBangController(int bandCenter, int bandwidth, int motorLow, int motorHigh) {
     // Default Constructor
@@ -36,12 +36,13 @@ public class BangBangController implements UltrasonicController {
 		  // bad value, do not set the distance var, however do increment the
 	      // filter value
 	      filterControl++;
+	  
 	  } 
 	  else if (distance >= 255) {
 		  // We have repeated large values, so there must actually be nothing
 		  // there: put the distance to 255
 		  // the above is done since there seems to be problems with extra large values of distance
-		  this.distance = 255;
+		  this.distance = 300;
 	  } 
 	  else {
 		  // distance went below 255: reset filter and leave
@@ -73,12 +74,18 @@ public class BangBangController implements UltrasonicController {
     	WallFollowingLab.rightMotor.setSpeed(motorHigh - DELTASPD);
     	WallFollowingLab.leftMotor.forward();
     	WallFollowingLab.rightMotor.forward();
+    	filterControl = 0;
     }
     
     else if(distError < 0){ //too far; turn towards the wall
     	//reduce the left motor a bit less than the DELTASPD since the robot
     	//often turns too much and makes a u-turn instead
-    	WallFollowingLab.leftMotor.setSpeed(motorHigh - (DELTASPD/4));
+    	if (this.distance > 50) {
+    		WallFollowingLab.leftMotor.setSpeed((int) (motorHigh + DELTASPD/10));
+    	}
+    	else {
+    		WallFollowingLab.leftMotor.setSpeed((int) (motorHigh - DELTASPD));
+    	}
     	WallFollowingLab.rightMotor.setSpeed(motorHigh + DELTASPD);
     	WallFollowingLab.leftMotor.forward();
     	WallFollowingLab.rightMotor.forward();

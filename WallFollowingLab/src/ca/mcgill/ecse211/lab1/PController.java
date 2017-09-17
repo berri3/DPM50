@@ -6,7 +6,7 @@ public class PController implements UltrasonicController {
 
   /* Constants */
   private static final int MOTOR_SPEED = 135; //default motor speed
-  private static final int FILTER_OUT = 20; //used for the filter below
+  private static final int FILTER_OUT = 50; //used for the filter below
 
   private final int bandCenter;
   private final int bandWidth;
@@ -42,7 +42,7 @@ public class PController implements UltrasonicController {
     } else if (distance >= 255) {
       // We have repeated large values, so there must actually be nothing
       // there: leave the distance alone
-      this.distance = 255; //capped at 255
+      this.distance = 300; //capped at 255
     } else {
       // distance went below 255: reset filter and leave
       // distance alone.
@@ -90,8 +90,12 @@ public class PController implements UltrasonicController {
     		deltaSpeed = correction;
     	else
     		deltaSpeed = 100;
-    	
-    	WallFollowingLab.leftMotor.setSpeed((int) (MOTOR_SPEED - deltaSpeed/5));
+    	if (this.distance > 50) {
+    		WallFollowingLab.leftMotor.setSpeed((int) (MOTOR_SPEED + deltaSpeed/10));
+    	}
+    	else {
+    		WallFollowingLab.leftMotor.setSpeed((int) (MOTOR_SPEED - deltaSpeed));
+    	}
     	WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED + deltaSpeed);
     	WallFollowingLab.leftMotor.forward();
     	WallFollowingLab.rightMotor.forward();

@@ -6,7 +6,6 @@ public class BangBangController implements UltrasonicController {
 
   private final int bandCenter; //constant offset from the wall
   private final int bandwidth; //width of dead band (allowed error (?))
-//private final int motorLow;
   private final int motorHigh; //normal forward motor speed
   
   private int distance; //Measured and filtered distance from the wall
@@ -20,7 +19,6 @@ public class BangBangController implements UltrasonicController {
     // Default Constructor
     this.bandCenter = bandCenter;
     this.bandwidth = bandwidth;
-  //this.motorLow = motorLow;
     this.motorHigh = motorHigh;
     this.filterControl = 0; //initialize the filter control to 0
     WallFollowingLab.leftMotor.setSpeed(motorHigh); // Start robot moving forward
@@ -40,7 +38,7 @@ public class BangBangController implements UltrasonicController {
 	  } 
 	  else if (distance >= 255) {
 		  // We have repeated large values, so there must actually be nothing
-		  // there: put the distance to 255
+		  // there: put the distance to 300
 		  // the above is done since there seems to be problems with extra large values of distance
 		  this.distance = 300;
 	  } 
@@ -53,13 +51,6 @@ public class BangBangController implements UltrasonicController {
 	  
 	  //computing the difference between the wanted value vs the actual value of distance
 	  distError = bandCenter - this.distance;
-    
-//    if (distance > 200) { //really too far; probably because the wall is ending
-//    	WallFollowingLab.leftMotor.setSpeed(motorReallyHigh);
-//    	WallFollowingLab.rightMotor.setSpeed(motorReallyHigh);
-//    	WallFollowingLab.leftMotor.backward();
-//    	WallFollowingLab.rightMotor.forward();
-//    }
     
     if (Math.abs(distError) <= bandwidth){ //within acceptable error
     	//keep moving the robot forward at the original speed
@@ -78,12 +69,13 @@ public class BangBangController implements UltrasonicController {
     }
     
     else if(distError < 0){ //too far; turn towards the wall
-    	//reduce the left motor a bit less than the DELTASPD since the robot
-    	//often turns too much and makes a u-turn instead
-    	if (this.distance > 50) {
+
+    	if (this.distance > 50) { //if making a large angle turn (to get around block)
+        	//reduce the left motor a bit less than the DELTASPD since the robot
+        	//often turns too much and makes a u-turn instead
     		WallFollowingLab.leftMotor.setSpeed((int) (motorHigh + DELTASPD/10));
     	}
-    	else {
+    	else{ //if going towards wall just to adjust distance
     		WallFollowingLab.leftMotor.setSpeed((int) (motorHigh - DELTASPD));
     	}
     	WallFollowingLab.rightMotor.setSpeed(motorHigh + DELTASPD);

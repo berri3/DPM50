@@ -42,7 +42,7 @@ public class PController implements UltrasonicController {
     } else if (distance >= 255) {
       // We have repeated large values, so there must actually be nothing
       // there: leave the distance alone
-      this.distance = 300; //capped at 255
+      this.distance = 300; //capped at 300
     } else {
       // distance went below 255: reset filter and leave
       // distance alone.
@@ -90,10 +90,12 @@ public class PController implements UltrasonicController {
     		deltaSpeed = correction;
     	else
     		deltaSpeed = 100;
-    	if (this.distance > 50) {
+    	if (this.distance > 50) { //if making a large angle turn (to get around block)
+    		//reduce the left motor a bit less than the DELTASPD since the robot
+        	//often turns too much and makes a u-turn instead
     		WallFollowingLab.leftMotor.setSpeed((int) (MOTOR_SPEED + deltaSpeed/10));
     	}
-    	else {
+    	else { //if going towards wall just to adjust distance
     		WallFollowingLab.leftMotor.setSpeed((int) (MOTOR_SPEED - deltaSpeed));
     	}
     	WallFollowingLab.rightMotor.setSpeed(MOTOR_SPEED + deltaSpeed);

@@ -7,10 +7,12 @@ public class Odometer extends Thread {
   private double x;
   private double y;
   private double theta;
-  private int leftMotorTachoCount;
+  private int leftMotorTachoCount; //NOW taco
   private int leftMotorLastTC;
   private int rightMotorTachoCount;
   private int rightMotorLastTC;
+  private double distL, distR, deltaD, deltaTRad, deltaT, dX, dY;
+  
   private EV3LargeRegulatedMotor leftMotor;
   private EV3LargeRegulatedMotor rightMotor;
   
@@ -43,25 +45,21 @@ public class Odometer extends Thread {
     rightMotorLastTC = rightMotor.getTachoCount();
 
     while (true) {
-
-      double distL, distR, deltaD, deltaT, dX, dY;
-    	
     	
       updateStart = System.currentTimeMillis();
 
       leftMotorTachoCount = leftMotor.getTachoCount(); //get tacos
-      rightMotorTachoCount = rightMotor.getTachoCount();
+      rightMotorTachoCount = rightMotor.getTachoCount();      
       
+      distL = (Math.PI)*wheelR*(leftMotorTachoCount-leftMotorLastTC)/180;
+      distR = (Math.PI)*wheelR*(rightMotorTachoCount-rightMotorLastTC)/180;
       
-      
-      distL = Math.PI*wheelR*(leftMotorTachoCount-leftMotorLastTC)/180;
-      distR = Math.PI*wheelR*(rightMotorTachoCount-rightMotorLastTC)/180;
-      
-      leftMotorTachoCount = leftMotorLastTC;
-      rightMotorTachoCount = rightMotorLastTC;
+      leftMotorLastTC = leftMotorTachoCount;
+      rightMotorLastTC = rightMotorTachoCount;
       
       deltaD = (distL + distR)/2;
-      deltaT = (distL - distR)/wheelW;
+      deltaTRad = (distL - distR)/wheelW;
+      deltaT = deltaTRad * 360 / (2*Math.PI);
       
       
       synchronized (lock) {
@@ -70,7 +68,13 @@ public class Odometer extends Thread {
          * and theta in this block. Do not perform complex math
          * 
          */
-    	 theta += deltaT;
+    	 //theta is now in degrees
+    	 
+    	 if(theta + deltaT >= 0) {
+    		 theta = (theta + deltaT) % 360; //limit the range to [0, 359]
+    	 }
+    	 else
+    		 theta = Math.abs((theta + deltaT) % 360);
     	 
          dX = deltaD*Math.sin(theta);
          dY = deltaD*Math.cos(theta);

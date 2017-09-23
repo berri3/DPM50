@@ -6,6 +6,8 @@ import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.motor.EV3MediumRegulatedMotor;
+import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.Port;
 
@@ -13,9 +15,11 @@ public class OdometryLab {
 
   private static final EV3LargeRegulatedMotor leftMotor =
       new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
-  
+//  NXTRegulatedMotor aMotor;
+//  EV3MediumRegulatedMotor aah;
   private static final EV3LargeRegulatedMotor rightMotor =
       new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+  
 
   public static final double WHEEL_RADIUS = 2.1;
   public static final double TRACK = 15.3; //distance between the two wheels

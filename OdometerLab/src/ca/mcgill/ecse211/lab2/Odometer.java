@@ -76,8 +76,8 @@ public class Odometer extends Thread {
     	 else
     		 theta = ((theta + deltaT) % 360) + 360; //since we want the positive value
     	 
-         dX = deltaD*Math.sin(theta);
-         dY = deltaD*Math.cos(theta);
+         dX = distL*Math.sin(theta*Math.PI/180);
+         dY = distR*Math.cos(theta*Math.PI/180);
          
     	 x = x + dX;
          y = y + dY;

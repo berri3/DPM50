@@ -4,23 +4,23 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Odometer extends Thread {
   // robot position
-  private double x;
-  private double y;
-  private double theta;
-  private int leftMotorTachoCount; //NOW taco
-  private int leftMotorLastTC;
-  private int rightMotorTachoCount;
-  private int rightMotorLastTC;
-  private double distL, distR, deltaD, deltaTRad, deltaT, dX, dY;
+  private double x; //current x coordinate wrt the origin (intersection of the closest 2 black lines
+  private double y; //current y coordinate wrt the origin (intersection of the closest 2 black lines
+  private double theta; //current angle with origin the positive y axis and going + CW
+  private int leftMotorTachoCount; //current tachometer count for the left motor
+  private int leftMotorLastTC; //previous tachometer count for the left motor
+  private int rightMotorTachoCount; //current tachometer count for the right motor
+  private int rightMotorLastTC; //previous tachometer count for the right motor
+  
+  private double distL, distR, deltaD, deltaTRad, deltaT, dX, dY; //used later for computing x, y, and theta
+    
+  private double wheelR = OdometryLab.WHEEL_RADIUS;
+  private double wheelW = OdometryLab.TRACK;
+  private static final long ODOMETER_PERIOD = 25; /*odometer update period, in ms*/
   
   private EV3LargeRegulatedMotor leftMotor;
   private EV3LargeRegulatedMotor rightMotor;
   
-  private double wheelR = OdometryLab.WHEEL_RADIUS;
-  private double wheelW = OdometryLab.TRACK;
-
-  private static final long ODOMETER_PERIOD = 25; /*odometer update period, in ms*/
-
   private Object lock; /*lock object for mutual exclusion*/
 
   // default constructor
@@ -39,27 +39,30 @@ public class Odometer extends Thread {
   public void run() {
     long updateStart, updateEnd;
     
-    leftMotor.resetTachoCount();
+    leftMotor.resetTachoCount(); //reset counters
     rightMotor.resetTachoCount();
-    leftMotorLastTC = leftMotor.getTachoCount();
+    leftMotorLastTC = leftMotor.getTachoCount(); //should be 0°, but just in case :)
     rightMotorLastTC = rightMotor.getTachoCount();
 
     while (true) {
     	
       updateStart = System.currentTimeMillis();
-
-      leftMotorTachoCount = leftMotor.getTachoCount(); //get tacos
+      
+      //get the new tachometer count
+      leftMotorTachoCount = leftMotor.getTachoCount(); 
       rightMotorTachoCount = rightMotor.getTachoCount();      
       
+      //computing the displacement for each wheel by calculating the difference between the old and new
       distL = (Math.PI)*wheelR*(leftMotorTachoCount-leftMotorLastTC)/180;
       distR = (Math.PI)*wheelR*(rightMotorTachoCount-rightMotorLastTC)/180;
       
+      //update the previous counts with the current counts
       leftMotorLastTC = leftMotorTachoCount;
       rightMotorLastTC = rightMotorTachoCount;
       
-      deltaD = (distL + distR)/2;
-      deltaTRad = (distL - distR)/wheelW;
-      deltaT = deltaTRad * 360 / (2*Math.PI);
+      //deltaD = (distL + distR)/2;
+      deltaTRad = (distL - distR)/wheelW; //computing the change in angle (radians)
+      deltaT = deltaTRad * 360 / (2*Math.PI); //radians -> degrees
       
       
       synchronized (lock) {
@@ -68,19 +71,19 @@ public class Odometer extends Thread {
          * and theta in this block. Do not perform complex math
          * 
          */
-    	 //theta is now in degrees
     	 
-    	 if(theta + deltaT >= 0) {
+    	 if(theta + deltaT >= 0) { //updating theta, in degrees
     		 theta = (theta + deltaT) % 360; //limit the range to [0, 359]
     	 }
-    	 else
-    		 theta = ((theta + deltaT) % 360) + 360; //since we want the positive value
+    	 else //if negative angle, add 360, since we want the positive value
+    		 theta = ((theta + deltaT) % 360) + 360;
     	 
          dX = distL*Math.sin(theta*Math.PI/180);
          dY = distR*Math.cos(theta*Math.PI/180);
 //    	 dX = deltaD*Math.sin(theta*Math.PI/180);
 //    	 dY = deltaD*Math.cos(theta*Math.PI/180);
          
+         //update position
     	 x = x + dX;
          y = y + dY;
       }

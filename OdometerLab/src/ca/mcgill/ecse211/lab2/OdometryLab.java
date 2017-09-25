@@ -21,8 +21,8 @@ public class OdometryLab {
       new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
   
 
-  public static final double WHEEL_RADIUS = 2.15;
-  public static final double TRACK = 15; //distance between the two wheels
+  public static final double WHEEL_RADIUS = 2.15; //in cm
+  public static final double TRACK = 15; //distance between the two wheels in cm
 
   public static void main(String[] args) {
     int buttonChoice;

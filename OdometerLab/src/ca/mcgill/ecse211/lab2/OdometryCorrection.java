@@ -14,10 +14,11 @@ public class OdometryCorrection extends Thread {
   private static final long CORRECTION_PERIOD = 10;
   
   private static final double TILE_LENGTH = 30.48; // as given per lab instructions
-  private static final double BLACK_LINE = 0.18; //value to know a black line is read
+  private static final double BLACK_LINE = 13.0; //value to know a black line is read
   
   
   private Odometer odometer;
+  private static float lightSensorValue;
   
   //initialize the light sensor
   private static final Port portLight = LocalEV3.get().getPort("S1");
@@ -44,38 +45,53 @@ public class OdometryCorrection extends Thread {
 
       //TODO Place correction implementation here
       myLight.fetchSample(sampleLight, 0); //store a sample in array sampleLight starting at index 0
-      if((sampleLight[0] <= BLACK_LINE) && !readLine) {
+      lightSensorValue = sampleLight[0];
+      if(lightSensorValue >= BLACK_LINE && !readLine) {
     	  
     	  //play sound
-    	  Sound.playNote(Sound.FLUTE, 400, 200);
+    	  //Sound.playNote(Sound.PIANO, 400, 200);
     	  //passed a line: increment the line counter
     	  counter ++;
     	  
     	  
     	  switch (counter) {
-    		  case 1: case 4: case 7: case 10:
+    	  	  case 1:
+    	  		  odometer.setY(0); //crossed the first line
+    	  		  initialYPos = odometer.getY();
+    	  		  Sound.playNote(Sound.PIANO, 523, 200);
+    	  		  break;
+    	  	  case 4:
+    	  		  odometer.setX(0);
+    	  		  initialXPos = odometer.getX();
+    	  		  Sound.playNote(Sound.PIANO, 523, 200);
+    	  		  break;
+    		  case 7: case 10:
     			  initialXPos = odometer.getX(); //first time sensor sees the line for each heading,
     			  initialYPos = odometer.getY(); //take the odometer position and use it as reference
     		  								     //for the future line crossings for the same heading
+    			  Sound.playNote(Sound.PIANO, 523, 200);
     			  break;
     		  case 2: case 3: //robot moving in positive Y
     			  //add a tile length to the initial measurement
     			  //the new measurement should be the correct one, pass it on to the odometer.
     			  initialYPos += TILE_LENGTH;
     			  odometer.setY(initialYPos);
+    			  Sound.playNote(Sound.PIANO, 659, 200);
     			  break;
-    			  
     		  case 8: case 9: //robot moving in negative Y
     			  initialYPos -= TILE_LENGTH;
     			  odometer.setY(initialYPos);
+    			  Sound.playNote(Sound.PIANO, 784, 200);
     			  break;
     		  case 5: case 6: //robot moving in positive X
     			  initialXPos += TILE_LENGTH;
     			  odometer.setX(initialXPos);
+    			  Sound.playNote(Sound.PIANO, 932, 200);
     			  break;
     		  case 11: case 12: //robot moving in negative X
     			  initialXPos -= TILE_LENGTH;
-    			  odometer.setX(initialXPos);
+    			  odometer.setX(initialXPos); 
+    			  Sound.playNote(Sound.PIANO, 1047, 200);
     			  break;
     		  default: //in any other case, default behaviour.
     			  initialXPos = odometer.getX();
@@ -103,5 +119,9 @@ public class OdometryCorrection extends Thread {
         }
       }
     }
+  }
+  
+  public static float returnLightSensor() {
+	  return lightSensorValue;
   }
 }

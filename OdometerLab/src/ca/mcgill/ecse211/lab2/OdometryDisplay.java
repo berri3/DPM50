@@ -42,7 +42,11 @@ public class OdometryDisplay extends Thread {
       }
       
       //display light sensor information
-      t.drawString("Light: " + OdometryCorrection.returnLightSensor(), 0, 3);
+      t.drawString("Light: " + OdometryCorrection.getLightSensor(), 0, 3);
+      
+      //display the position correction information
+      t.drawString("XPos: " + OdometryCorrection.getInitialXPos(), 0, 4);
+      t.drawString("YPos: " + OdometryCorrection.getInitialYPos(), 0, 5);
       
       
       // throttle the OdometryDisplay

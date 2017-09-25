@@ -15,7 +15,8 @@ public class OdometryCorrection extends Thread {
   
   private static final double TILE_LENGTH = 30.48; // as given per lab instructions
   private static final double BLACK_LINE = 13.0; //value to know a black line is read
-  
+  private static double initialYPos;
+  private static double initialXPos;
   
   private Odometer odometer;
   private static float lightSensorValue;
@@ -36,8 +37,8 @@ public class OdometryCorrection extends Thread {
     long correctionStart, correctionEnd;
     int counter = 0; //counting how many lines the robot has crossed
     
-    double initialYPos = 0;
-    double initialXPos = 0;
+    initialYPos = 0;
+    initialXPos = 0;
     boolean readLine = false; //if the sensor is reading a line
     
     while (true) {
@@ -52,7 +53,6 @@ public class OdometryCorrection extends Thread {
     	  //Sound.playNote(Sound.PIANO, 400, 200);
     	  //passed a line: increment the line counter
     	  counter ++;
-    	  
     	  
     	  switch (counter) {
     	  	  case 1:
@@ -81,16 +81,17 @@ public class OdometryCorrection extends Thread {
     		  case 8: case 9: //robot moving in negative Y
     			  initialYPos -= TILE_LENGTH;
     			  odometer.setY(initialYPos);
-    			  Sound.playNote(Sound.PIANO, 784, 200);
+    			  Sound.playNote(Sound.PIANO, 932, 200);
     			  break;
     		  case 5: case 6: //robot moving in positive X
     			  initialXPos += TILE_LENGTH;
     			  odometer.setX(initialXPos);
-    			  Sound.playNote(Sound.PIANO, 932, 200);
+    			  Sound.playNote(Sound.PIANO, 784, 200);
     			  break;
     		  case 11: case 12: //robot moving in negative X
     			  initialXPos -= TILE_LENGTH;
     			  odometer.setX(initialXPos); 
+    			  odometer.setTheta(270);
     			  Sound.playNote(Sound.PIANO, 1047, 200);
     			  break;
     		  default: //in any other case, default behaviour.
@@ -102,10 +103,6 @@ public class OdometryCorrection extends Thread {
       else { //either actually not on a black line OR one one but already finished reading it
     	  readLine = false;
       }
-    	  
-      
-      
-      
       
       // this ensure the odometry correction occurs only once every period
       correctionEnd = System.currentTimeMillis();
@@ -121,7 +118,15 @@ public class OdometryCorrection extends Thread {
     }
   }
   
-  public static float returnLightSensor() {
+  public static float getLightSensor() {
 	  return lightSensorValue;
+  }
+  
+  public static double getInitialYPos() {
+	  return initialYPos;
+  }
+  
+  public static double getInitialXPos() {
+	  return initialXPos;
   }
 }

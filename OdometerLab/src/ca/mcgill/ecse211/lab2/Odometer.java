@@ -78,6 +78,8 @@ public class Odometer extends Thread {
     	 
          dX = distL*Math.sin(theta*Math.PI/180);
          dY = distR*Math.cos(theta*Math.PI/180);
+//    	 dX = deltaD*Math.sin(theta*Math.PI/180);
+//    	 dY = deltaD*Math.cos(theta*Math.PI/180);
          
     	 x = x + dX;
          y = y + dY;

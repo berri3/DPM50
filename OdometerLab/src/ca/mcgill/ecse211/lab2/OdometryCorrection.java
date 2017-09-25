@@ -111,10 +111,9 @@ public class OdometryCorrection extends Thread {
     		  case 11: case 12: //robot moving in negative X
     			  initialXPos -= TILE_LENGTH;
     			  odometer.setX(initialXPos); 
-    			  odometer.setTheta(270); //TODO
     			  Sound.playNote(Sound.PIANO, 1047, 200);
     			  break;
-    			  
+
     		  default: //in any other case, default behaviour.
     			  initialXPos = odometer.getX();
     			  initialYPos = odometer.getY();

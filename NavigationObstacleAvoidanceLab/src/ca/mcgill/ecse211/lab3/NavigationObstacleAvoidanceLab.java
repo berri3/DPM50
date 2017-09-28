@@ -1,28 +1,31 @@
-// Lab2.java
+// Lab3.java
 
-package ca.mcgill.ecse211.lab2;
+package ca.mcgill.ecse211.lab3;
 
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
-import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.Port;
 
-public class OdometryLab {
+public class NavigationObstacleAvoidanceLab {
 
   private static final EV3LargeRegulatedMotor leftMotor =
       new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
-//  NXTRegulatedMotor aMotor;
-//  EV3MediumRegulatedMotor aah;
   private static final EV3LargeRegulatedMotor rightMotor =
-      new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
-  
+	  new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+  private static final EV3MediumRegulatedMotor sensorMotor =
+	  new EV3MediumRegulatedMotor(LocalEV3.get().getPort("B"));
+  private static final Port usPort = LocalEV3.get().getPort("S1");
+  private static final Port lightPort = LocalEV3.get().getPort("S2");
 
   public static final double WHEEL_RADIUS = 2.15; //in cm
   public static final double TRACK = 15; //distance between the two wheels in cm
+  private static final int bandCenter = 37; // Offset from the wall (cm)
+  private static final int bandWidth = 4; // Width of dead band (cm)
+  private static final int motorHigh = 110; // Speed of the faster rotating wheel (deg/sec)
 
   public static void main(String[] args) {
     int buttonChoice;

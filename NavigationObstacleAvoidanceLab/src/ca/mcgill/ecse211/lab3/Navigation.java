@@ -24,16 +24,16 @@ public class Navigation extends Thread{
 	
 	//some constants
 	private double tileLength = NavigationObstacleAvoidanceLab.TILE_LENGTH;
-	private int forwardSpeed = NavigationObstacleAvoidanceLab.motorHigh;
+	private int forwardSpeed = NavigationObstacleAvoidanceLab.MOTOR_HIGH;
 	private double wheelRadius = NavigationObstacleAvoidanceLab.WHEEL_RADIUS;
 	private double track = NavigationObstacleAvoidanceLab.TRACK;
 	private int rotateSpeed = NavigationObstacleAvoidanceLab.ROTATE_SPEED;
-	private int acceleration = NavigationObstacleAvoidanceLab.motorAcceleration;
+	private int acceleration = NavigationObstacleAvoidanceLab.MOTOR_ACCELERATION;
 	private int threshold = NavigationObstacleAvoidanceLab.THRESHOLD; //acceptable error for obstacle
 	private int angleThreshold = NavigationObstacleAvoidanceLab.ANGLE_THRESHOLD;
 	
 	//boolean
-	private boolean isNavigating;
+	//private boolean isNavigating;
 	
 	
 	//constructor
@@ -54,19 +54,12 @@ public class Navigation extends Thread{
 	public void run() {
 		leftMotor.setAcceleration(acceleration);
 		rightMotor.setAcceleration(acceleration);
-		travelTo(1,1);
-		travelTo(0,2);
-		travelTo(2,2);
-		travelTo(2,1);
-		travelTo(1,0);
-		
+		travelTo(0,3);
+		travelTo(3,3);
 	}
 	
 	void travelTo(double pointX, double pointY) {
 		double minAngle, travelDistance, distanceX, distanceY, deltaX, deltaY; //angleDifference;
-		
-		//since robot is traveling now sike
-		//isNavigating = true;
 		
 		//update current position TODO: does it impact stuff?
 		x = odometer.getX();
@@ -96,12 +89,15 @@ public class Navigation extends Thread{
 		
 		//obstacle check: do nothing if navigating and did not encounter obstacle yet
 		//else take appropriate action	
-		while(isNavigating && currentDistance > threshold); //wait.
+		while(isNavigating() && currentDistance > threshold); //wait.
 		//will stop waiting either b/c: robot has finished traveling OR seen an obstacle
 		
 		//if seen an obstacle while still moving
 		//TODO: how is this gonna work for recursive calls(?)
-		if(isNavigating) {
+		if(isNavigating()) {
+			Sound.playNote(Sound.PIANO, 650, 500);
+			double previousX, previousY;
+			
 			//decelerate to avoid slip; therefore not using .stop()
 			leftMotor.setSpeed(0);
 			rightMotor.setSpeed(0);
@@ -110,12 +106,23 @@ public class Navigation extends Thread{
 			leftMotor.flt();
 			rightMotor.flt();
 			
+			previousX = odometer.getX();
+			previousY = odometer.getY();
+			
 			//turn robot 90° right and prepare for wall follower
+			leftMotor.setSpeed(rotateSpeed);
+			rightMotor.setSpeed(rotateSpeed);
 			leftMotor.rotate(convertAngle(wheelRadius, track, 90), true);
 			rightMotor.rotate(-convertAngle(wheelRadius, track, 90), false);
-			//put sensor at 45 CCW°
-			sensorMotor.rotate(-45);
 			
+			//correct position
+			odometer.setX(previousX);
+			odometer.setY(previousY);
+			
+			//put sensor at 45 CCW°
+			//sensorMotor.setSpeed(25);
+			sensorMotor.setSpeed(25);
+			sensorMotor.rotateTo(-45);
 			
 			//to know when to stop the obstacle avoidance state, check if current angle is close
 			//to previous heading.
@@ -130,6 +137,8 @@ public class Navigation extends Thread{
 				//P-controller should keep running until robot is at correct heading
 			}
 			
+			//put sensor back straight
+			sensorMotor.rotateTo(0);
 			//if we have the correct heading, exit the while loop:
 			//technically, a recursive call to travelTo should now work. #pray
 			travelTo(pointX, pointY);
@@ -181,6 +190,7 @@ public class Navigation extends Thread{
 	//and the method has yet to return; false otherwise.
 	//TODO: something to do with avoidance(?)
 	boolean isNavigating() {
+		boolean isNavigating;
 		isNavigating = leftMotor.isMoving() || rightMotor.isMoving();
 		return isNavigating;
 	}

@@ -23,18 +23,17 @@ public class NavigationObstacleAvoidanceLab {
   private static final EV3MediumRegulatedMotor sensorMotor =
 	  new EV3MediumRegulatedMotor(LocalEV3.get().getPort("B"));
   private static final Port usPort = LocalEV3.get().getPort("S1");
-  //private static final Port lightPort = LocalEV3.get().getPort("S2");
 
   public static final double WHEEL_RADIUS = 2.1; //in cm
   public static final double TRACK = 12.5; //distance between the two wheels in cm
   public static final double TILE_LENGTH = 30.48;
-  public static final int bandCenter = 37; // Offset from the wall (cm)
-  public static final int bandWidth = 4; // Width of dead band (cm)
-  public static final int motorHigh = 110; // Speed of the faster rotating wheel (deg/sec)
+  public static final int BANDCENTER = 37; // Offset from the wall (cm)
+  public static final int BANDWIDTH = 4; // Width of dead band (cm)
+  public static final int MOTOR_HIGH = 110; // Speed of the faster rotating wheel (deg/sec)
   public static final int ROTATE_SPEED = 75;
-  public static final int motorAcceleration = 150; //
+  public static final int MOTOR_ACCELERATION = 150; //
   public static final int THRESHOLD = 20; 
-  public static final int ANGLE_THRESHOLD = 2; //in degrees; acceptable angle to stop avoidance
+  public static final int ANGLE_THRESHOLD = 20; //in degrees; acceptable angle to stop avoidance
 
   public static void main(String[] args) {
     int buttonChoice;
@@ -49,11 +48,8 @@ public class NavigationObstacleAvoidanceLab {
     //set up odometer
     Odometer odometer = new Odometer(leftMotor, rightMotor);
     
-    //set up correction
-    //OdometryCorrection odometryCorrection = new OdometryCorrection(odometer);
-    
     //set up p-controller
-    PController pController = new PController(bandCenter, bandWidth);
+    PController pController = new PController(BANDCENTER, BANDWIDTH);
     
     //set up ultrasonic poller
     UltrasonicPoller usPoller = new UltrasonicPoller(usDistance, usData, pController);
@@ -102,9 +98,9 @@ public class NavigationObstacleAvoidanceLab {
 
       // ask the user whether the motors should drive in a square or float
       t.drawString("< Left | Right >", 0, 0);
-      t.drawString("  No   | with   ", 0, 1);
-      t.drawString(" corr- | corr-  ", 0, 2);
-      t.drawString(" ection| ection ", 0, 3);
+      t.drawString("  No   | With   ", 0, 1);
+      t.drawString(" avoi- |  avoi- ", 0, 2);
+      t.drawString(" dance | dance ", 0, 3);
       t.drawString(" Nav.  |No touch", 0, 4);
       
       buttonChoice = Button.waitForAnyPress();
@@ -119,12 +115,6 @@ public class NavigationObstacleAvoidanceLab {
       //start navigation
       navigation.start();
       
-//      // spawn a new Thread to avoid SquareDriver.drive() from blocking
-//      (new Thread() {
-//        public void run() {
-//          SquareDriver.drive(leftMotor, rightMotor, WHEEL_RADIUS, WHEEL_RADIUS, TRACK);
-//        }
-//      }).start();
     }
 
     while (Button.waitForAnyPress() != Button.ID_ESCAPE);

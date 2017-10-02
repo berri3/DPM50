@@ -1,17 +1,18 @@
 package ca.mcgill.ecse211.lab3;
 
 import lejos.hardware.Sound;
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 
 public class Navigation extends Thread{
 	
 	//motors and stuff
-	private EV3LargeRegulatedMotor leftMotor;
-	private EV3LargeRegulatedMotor rightMotor;
+	private NXTRegulatedMotor leftMotor;
+	private NXTRegulatedMotor rightMotor;
 	private EV3MediumRegulatedMotor sensorMotor;
 	private Odometer odometer;
 	private UltrasonicPoller usPoller;
+	private PController controller;
 	
 	//position variables
 	private double x;
@@ -28,14 +29,16 @@ public class Navigation extends Thread{
 	private double track = NavigationObstacleAvoidanceLab.TRACK;
 	private int rotateSpeed = NavigationObstacleAvoidanceLab.ROTATE_SPEED;
 	private int acceleration = NavigationObstacleAvoidanceLab.motorAcceleration;
-	private int threshold = NavigationObstacleAvoidanceLab.THRESHOLD; //acceptable error
+	private int threshold = NavigationObstacleAvoidanceLab.THRESHOLD; //acceptable error for obstacle
+	private int angleThreshold = NavigationObstacleAvoidanceLab.ANGLE_THRESHOLD;
 	
 	//boolean
 	private boolean isNavigating;
 	
+	
 	//constructor
-	public Navigation(EV3LargeRegulatedMotor leftMotor, 
-			EV3LargeRegulatedMotor rightMotor, 
+	public Navigation(NXTRegulatedMotor leftMotor, 
+			NXTRegulatedMotor rightMotor, 
 			EV3MediumRegulatedMotor sensorMotor, 
 			Odometer odometer, 
 			UltrasonicPoller usPoller,
@@ -45,10 +48,12 @@ public class Navigation extends Thread{
 		this.sensorMotor = sensorMotor;
 		this.odometer = odometer;
 		this.usPoller = usPoller;
+		this.controller = pController;
 	}
 	
 	public void run() {
 		leftMotor.setAcceleration(acceleration);
+		rightMotor.setAcceleration(acceleration);
 		travelTo(1,1);
 		travelTo(0,2);
 		travelTo(2,2);
@@ -58,85 +63,90 @@ public class Navigation extends Thread{
 	}
 	
 	void travelTo(double pointX, double pointY) {
-		double minAngle, travelDistance, distanceX, distanceY, deltaX, deltaY;
+		double minAngle, travelDistance, distanceX, distanceY, deltaX, deltaY; //angleDifference;
 		
 		//since robot is traveling now sike
 		//isNavigating = true;
 		
-		//update current position
+		//update current position TODO: does it impact stuff?
 		x = odometer.getX();
 		y = odometer.getY();
 		
-		//convert point coordinates to actual distance in cm
+		//convert point coordinates to actual distance *in cm*
 		distanceX = pointX*tileLength;
 		distanceY = pointY*tileLength;
 		
 		//calculate distance to travel from current position in each direction
-		deltaX = distanceX - x;
-		deltaY = distanceY - y;
+		deltaX = distanceX - odometer.getX();
+		deltaY = distanceY - odometer.getY();
 		
 		//calculate pythagorean distance to travel
 		travelDistance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
 		
-		//takes in x value first since 0° is at the y axis
-		minAngle = Math.atan2(deltaX, deltaY); //gets the angle in the correct quadrant [-180, 180]
-		if(minAngle < 0) { //so that the range of theta stays [0, 2pi[ or [0°, 359°]
-			minAngle += Math.PI*2;
-		}
-		
-		//convert into degrees
-		minAngle = Math.toDegrees(minAngle);
-		
 		//turn towards the required angle 
+		minAngle = computeHeading(distanceX, distanceY); //compute the required heading to turn to
 		turnTo(minAngle);
 		
 		//travel
 		leftMotor.setSpeed(forwardSpeed);
 		rightMotor.setSpeed(forwardSpeed);
 		leftMotor.rotate(convertDistance(wheelRadius,travelDistance), true);
-		rightMotor.rotate(convertDistance(wheelRadius, travelDistance), false);
+		//TODO: set to true if want avoidance
+		rightMotor.rotate(convertDistance(wheelRadius, travelDistance), true);
 		
-//		//obstacle check: do nothing if navigating and did not encounter obstacle yet
-//		//else take appropriate action	
-//		while(isNavigating && currentDistance > threshold); //wait.
-//		//will stop waiting either b/c: robot has finished traveling OR seen an obstacle
-//		
-//		//if seen an obstacle while still moving
-//		//TODO: how is this gonna work for recursive calls(?)
-//		if(isNavigating) {
-//			//decelerate to avoid slip; therefore not using .stop()
-//			leftMotor.setSpeed(0);
-//			rightMotor.setSpeed(0);
-//			leftMotor.forward();
-//			rightMotor.forward();
-//			leftMotor.flt();
-//			rightMotor.flt();
-//			
-//			//turn robot 90° right and prepare for wall follower
-//			leftMotor.rotate(convertAngle(wheelRadius, track, 90), true);
-//			rightMotor.rotate(-convertAngle(wheelRadius, track, 90), false);
-//			//put sensor at 45 CCW°
-//			sensorMotor.rotate(-45);		
-//			
-//			//to know when to stop the obstacle avoidance state, check if current angle is close
-//			//to previous heading.
-//			while (true) {
-//				
-//			}
-//			
-//		}
+		//obstacle check: do nothing if navigating and did not encounter obstacle yet
+		//else take appropriate action	
+		while(isNavigating && currentDistance > threshold); //wait.
+		//will stop waiting either b/c: robot has finished traveling OR seen an obstacle
+		
+		//if seen an obstacle while still moving
+		//TODO: how is this gonna work for recursive calls(?)
+		if(isNavigating) {
+			//decelerate to avoid slip; therefore not using .stop()
+			leftMotor.setSpeed(0);
+			rightMotor.setSpeed(0);
+			leftMotor.forward();
+			rightMotor.forward();
+			leftMotor.flt();
+			rightMotor.flt();
+			
+			//turn robot 90° right and prepare for wall follower
+			leftMotor.rotate(convertAngle(wheelRadius, track, 90), true);
+			rightMotor.rotate(-convertAngle(wheelRadius, track, 90), false);
+			//put sensor at 45 CCW°
+			sensorMotor.rotate(-45);
+			
+			
+			//to know when to stop the obstacle avoidance state, check if current angle is close
+			//to previous heading.
+			//update theta
+			theta = odometer.getTheta();
+			
+			//continually compute the new required heading and see if we're close to it
+			while (Math.abs(computeHeading(distanceX, distanceY) - odometer.getTheta())
+					> angleThreshold) {
+				// start p controller, continuously
+				controller.processUSData(currentDistance);
+				//P-controller should keep running until robot is at correct heading
+			}
+			
+			//if we have the correct heading, exit the while loop:
+			//technically, a recursive call to travelTo should now work. #pray
+			travelTo(pointX, pointY);
+			
+		}
 		
 		//TODO: stop(?)
-		leftMotor.stop(true);
-		rightMotor.stop(true);
-		
-		
-		
-
+//		leftMotor.stop(true);
+//		rightMotor.stop(true);
 	}
 	
 	//newAngle should be a value between 0 and 360
 	void turnTo(double theta){
+		double previousX, previousY;
+		
+		previousX = odometer.getX();
+		previousY = odometer.getY();
 		
 		leftMotor.setSpeed(rotateSpeed);
 	    rightMotor.setSpeed(rotateSpeed);
@@ -161,6 +171,9 @@ public class Navigation extends Thread{
 			rightMotor.rotate(convertAngle(wheelRadius, track, angleDifference-180), false);
 			Sound.playNote(Sound.PIANO, 880, 200);
 		}
+		
+		odometer.setX(previousX);
+		odometer.setY(previousY);
 	}
 	
 	
@@ -178,6 +191,26 @@ public class Navigation extends Thread{
 	
 	private static int convertAngle(double radius, double width, double angle) {
 		    return convertDistance(radius, Math.PI * width * angle / 360.0);
+	}
+	
+	//takes in distance (coordinates in cm, not points)
+	private double computeHeading(double destinationX, double destinationY) {
+		//calculate distance to travel from current position in each direction
+		double deltaX, deltaY, angle;
+		
+		deltaX = destinationX - odometer.getX();
+		deltaY = destinationY - odometer.getY();
+		
+		//takes in x value first since 0° is at the y axis
+		angle = Math.atan2(deltaX, deltaY); //gets the angle in the correct quadrant [-180, 180]
+		if(angle < 0) { //so that the range of theta stays [0, 2pi[ or [0°, 359°]
+			angle += Math.PI*2;
+		}
+		
+		//convert into degrees
+		angle = Math.toDegrees(angle);
+		
+		return angle;
 	}
 	
 	//sets the distance as read by the US and by the usPoller

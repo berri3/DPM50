@@ -7,7 +7,7 @@ import ca.mcgill.ecse211.lab3.PController;
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.port.Port;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
@@ -16,17 +16,17 @@ import lejos.robotics.SampleProvider;
 
 public class NavigationObstacleAvoidanceLab {
 
-  public static final EV3LargeRegulatedMotor leftMotor =
-      new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
-  public static final EV3LargeRegulatedMotor rightMotor =
-	  new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+  public static final NXTRegulatedMotor leftMotor =
+      new NXTRegulatedMotor(LocalEV3.get().getPort("A"));
+  public static final NXTRegulatedMotor rightMotor =
+	  new NXTRegulatedMotor(LocalEV3.get().getPort("D"));
   private static final EV3MediumRegulatedMotor sensorMotor =
 	  new EV3MediumRegulatedMotor(LocalEV3.get().getPort("B"));
   private static final Port usPort = LocalEV3.get().getPort("S1");
   //private static final Port lightPort = LocalEV3.get().getPort("S2");
 
   public static final double WHEEL_RADIUS = 2.1; //in cm
-  public static final double TRACK = 12.9; //distance between the two wheels in cm
+  public static final double TRACK = 12.5; //distance between the two wheels in cm
   public static final double TILE_LENGTH = 30.48;
   public static final int bandCenter = 37; // Offset from the wall (cm)
   public static final int bandWidth = 4; // Width of dead band (cm)
@@ -34,7 +34,7 @@ public class NavigationObstacleAvoidanceLab {
   public static final int ROTATE_SPEED = 75;
   public static final int motorAcceleration = 150; //
   public static final int THRESHOLD = 20; 
-  
+  public static final int ANGLE_THRESHOLD = 2; //in degrees; acceptable angle to stop avoidance
 
   public static void main(String[] args) {
     int buttonChoice;

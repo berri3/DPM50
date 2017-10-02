@@ -1,6 +1,6 @@
 package ca.mcgill.ecse211.lab3;
 
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.motor.NXTRegulatedMotor;
 
 public class Odometer extends Thread {
   // robot position
@@ -18,13 +18,13 @@ public class Odometer extends Thread {
   private double wheelW = NavigationObstacleAvoidanceLab.TRACK;
   private static final long ODOMETER_PERIOD = 25; /*odometer update period, in ms*/
   
-  private EV3LargeRegulatedMotor leftMotor;
-  private EV3LargeRegulatedMotor rightMotor;
+  private NXTRegulatedMotor leftMotor;
+  private NXTRegulatedMotor rightMotor;
   
   private Object lock; /*lock object for mutual exclusion*/
 
   // default constructor
-  public Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor) {
+  public Odometer(NXTRegulatedMotor leftMotor, NXTRegulatedMotor rightMotor) {
     this.leftMotor = leftMotor;
     this.rightMotor = rightMotor;
     this.x = 0.0;

@@ -22,11 +22,13 @@ public class OdometryCorrection extends Thread {
   private static double initialXPos;
   
   private Odometer odometer;
+
+  //private Port portLight;
   private static float lightSensorValue; //value read by the light sensor
   
   //initialize the light sensor
   //1. get an instance of the port used
-  private static final Port portLight = LocalEV3.get().getPort("S1");
+  private static final Port portLight = LocalEV3.get().getPort("S2");
   //2. get an instance of the sensor using the port
   private static final SensorModes myLight = new EV3ColorSensor(portLight);
   //3. get instance of sensor in specified measurement mode
@@ -37,6 +39,7 @@ public class OdometryCorrection extends Thread {
   // constructor
   public OdometryCorrection(Odometer odometer) {
     this.odometer = odometer;
+    //this.portLight = port;
   }
 
   // run method (required for Thread)

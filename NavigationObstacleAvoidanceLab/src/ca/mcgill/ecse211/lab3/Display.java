@@ -1,20 +1,29 @@
 /*
- * OdometryDisplay.java
+ * Display.java
  */
 
 package ca.mcgill.ecse211.lab3;
 
+import ca.mcgill.ecse211.lab3.NavigationObstacleAvoidanceLab;
+import ca.mcgill.ecse211.lab3.UltrasonicController;
 import lejos.hardware.lcd.TextLCD;
 
-public class OdometryDisplay extends Thread {
+public class Display extends Thread {
   private static final long DISPLAY_PERIOD = 250;
   private Odometer odometer;
   private TextLCD t;
-
+  private UltrasonicController cont;
+  private Navigation navigation;
+  private int leftMotorSpeed;
+  private int rightMotorSpeed;
+  
   // constructor
-  public OdometryDisplay(Odometer odometer, TextLCD t) {
+  public Display(Odometer odometer, UltrasonicController cont,
+		  TextLCD t, Navigation aNavigation) {
     this.odometer = odometer;
     this.t = t;
+    this.cont = cont;
+    this.navigation = aNavigation;
   }
 
   // run method (required for Thread)
@@ -44,9 +53,15 @@ public class OdometryDisplay extends Thread {
       //display light sensor information
       t.drawString("Light: " + OdometryCorrection.getLightSensor(), 0, 3);
       
-      //display the position correction information
-      t.drawString("XPos: " + OdometryCorrection.getInitialXPos(), 0, 4);
-      t.drawString("YPos: " + OdometryCorrection.getInitialYPos(), 0, 5);
+      //display US distance
+      t.drawString("US Distance: " + navigation.getDistance(), 0, 4);
+      
+      //print on the LCD the current speed of the two motors
+      leftMotorSpeed = NavigationObstacleAvoidanceLab.leftMotor.getRotationSpeed();
+      rightMotorSpeed = NavigationObstacleAvoidanceLab.rightMotor.getRotationSpeed();
+      
+      t.drawString("Left mot.: " + leftMotorSpeed, 0, 5);
+      t.drawString("Right mot.: " + rightMotorSpeed, 0, 6);
       
       
       // throttle the OdometryDisplay

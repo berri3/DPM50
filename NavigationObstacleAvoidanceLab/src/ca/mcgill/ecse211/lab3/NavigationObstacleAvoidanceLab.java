@@ -16,6 +16,7 @@ import lejos.robotics.SampleProvider;
 
 public class NavigationObstacleAvoidanceLab {
 
+	//get instances of the motors and sensors with their respective ports
   public static final NXTRegulatedMotor leftMotor =
       new NXTRegulatedMotor(LocalEV3.get().getPort("A"));
   public static final NXTRegulatedMotor rightMotor =
@@ -24,16 +25,17 @@ public class NavigationObstacleAvoidanceLab {
 	  new EV3MediumRegulatedMotor(LocalEV3.get().getPort("B"));
   private static final Port usPort = LocalEV3.get().getPort("S1");
 
+  //some constants
   public static final double WHEEL_RADIUS = 2.1; //in cm
   public static final double TRACK = 12.5; //distance between the two wheels in cm
-  public static final double TILE_LENGTH = 30.48;
-  public static final int BANDCENTER = 37; // Offset from the wall (cm)
+  public static final double TILE_LENGTH = 30.48; //in cm, as provided
+  public static final int BANDCENTER = 37; // Offset from the wall (cm) during avoidance
   public static final int BANDWIDTH = 4; // Width of dead band (cm)
   public static final int MOTOR_HIGH = 110; // Speed of the faster rotating wheel (deg/sec)
-  public static final int ROTATE_SPEED = 75;
-  public static final int MOTOR_ACCELERATION = 150; //
-  public static final int THRESHOLD = 20; 
-  public static final int ANGLE_THRESHOLD = 20; //in degrees; acceptable angle to stop avoidance
+  public static final int ROTATE_SPEED = 75; //in deg/s
+  public static final int MOTOR_ACCELERATION = 150; //in deg/s^2
+  public static final int THRESHOLD = 12; //in cm; distance before entering avoidance mode
+  public static final int ANGLE_THRESHOLD = 20; //in deg; acceptable angle difference to stop avoidance
 
   public static void main(String[] args) {
     int buttonChoice;

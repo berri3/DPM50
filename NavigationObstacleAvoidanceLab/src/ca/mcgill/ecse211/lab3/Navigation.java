@@ -18,6 +18,7 @@ public class Navigation extends Thread{
 	private double x;
 	private double y;
 	private double theta;
+	public static double heading;
 	
 	//distance
 	private int currentDistance;
@@ -52,14 +53,45 @@ public class Navigation extends Thread{
 	}
 	
 	public void run() {
-		leftMotor.setAcceleration(acceleration);
-		rightMotor.setAcceleration(acceleration);
-		travelTo(0,3);
-		travelTo(3,3);
+		
+	
+//		//Map 1
+//		travelTo(0,2); 
+//		travelTo(1,1); 
+//		travelTo(2,2); 
+//		travelTo(2,1); 
+//		travelTo(1,0);
+		
+//		//Map 2
+//		travelTo(1,1);
+//		travelTo(0,2);
+//		travelTo(2,2);
+//		travelTo(2,1);
+//		travelTo(1,0);
+		
+		//Map 3
+//		travelTo(1,0);
+//		travelTo(2,1);
+//		travelTo(2,2);
+//		travelTo(0,2);
+//		travelTo(1,1);
+		
+		travelTo(2,2);
+		travelTo(2,0);	
+		
+		//Map 4
+//		travelTo(0,1);
+//		travelTo(1,2); 
+//		travelTo(1,0); 
+//		travelTo(2,1); 
+//		travelTo(2,2);
 	}
 	
 	void travelTo(double pointX, double pointY) {
 		double minAngle, travelDistance, distanceX, distanceY, deltaX, deltaY; //angleDifference;
+		
+		leftMotor.setAcceleration(acceleration);
+		rightMotor.setAcceleration(acceleration);
 		
 		//update current position TODO: does it impact stuff?
 		x = odometer.getX();
@@ -96,18 +128,19 @@ public class Navigation extends Thread{
 		//TODO: how is this gonna work for recursive calls(?)
 		if(isNavigating()) {
 			Sound.playNote(Sound.PIANO, 650, 500);
-			double previousX, previousY;
+			double previousX, previousY, previousTheta;
 			
 			//decelerate to avoid slip; therefore not using .stop()
 			leftMotor.setSpeed(0);
 			rightMotor.setSpeed(0);
 			leftMotor.forward();
 			rightMotor.forward();
-			leftMotor.flt();
-			rightMotor.flt();
+			leftMotor.stop(); //changing these from flt to stop
+			rightMotor.stop();
 			
 			previousX = odometer.getX();
 			previousY = odometer.getY();
+			previousTheta = odometer.getTheta();
 			
 			//turn robot 90° right and prepare for wall follower
 			leftMotor.setSpeed(rotateSpeed);
@@ -122,20 +155,37 @@ public class Navigation extends Thread{
 			//put sensor at 45 CCW°
 			//sensorMotor.setSpeed(25);
 			sensorMotor.setSpeed(25);
-			sensorMotor.rotateTo(-45);
+			sensorMotor.rotateTo(-60);
 			
 			//to know when to stop the obstacle avoidance state, check if current angle is close
 			//to previous heading.
 			//update theta
-			theta = odometer.getTheta();
+			//theta = odometer.getTheta();
 			
-			//continually compute the new required heading and see if we're close to it
-			while (Math.abs(computeHeading(distanceX, distanceY) - odometer.getTheta())
-					> angleThreshold) {
+			double stopTheta = previousTheta - 90;
+			
+			if (stopTheta < 0){
+				stopTheta += 360;
+			}
+			
+			while (Math.abs(odometer.getTheta() - stopTheta) > angleThreshold) {
 				// start p controller, continuously
 				controller.processUSData(currentDistance);
 				//P-controller should keep running until robot is at correct heading
 			}
+			
+			
+			//continually compute the new required heading and see if we're close to it
+//			while (Math.abs(computeHeading(distanceX, distanceY) - odometer.getTheta())
+//					> angleThreshold) {
+//				// start p controller, continuously
+//				controller.processUSData(currentDistance);
+//				//P-controller should keep running until robot is at correct heading
+//			}
+//			
+			
+			rightMotor.stop(true);
+			leftMotor.stop(); 
 			
 			//put sensor back straight
 			sensorMotor.rotateTo(0);
@@ -175,10 +225,15 @@ public class Navigation extends Thread{
 			Sound.playNote(Sound.PIANO, 500, 200);
 		}
 		//turn to the left
-		else {
-			leftMotor.rotate(-convertAngle(wheelRadius, track, angleDifference-180), true);
-			rightMotor.rotate(convertAngle(wheelRadius, track, angleDifference-180), false);
+		else if (angleDifference > 180){
+			leftMotor.rotate(-convertAngle(wheelRadius, track, 360-angleDifference), true);
+			rightMotor.rotate(convertAngle(wheelRadius, track, 360-angleDifference), false);
 			Sound.playNote(Sound.PIANO, 880, 200);
+		}
+		//turn to the left
+		else{
+			leftMotor.rotate(convertAngle(wheelRadius, track, angleDifference), true);
+			rightMotor.rotate(-convertAngle(wheelRadius, track, angleDifference), false);
 		}
 		
 		odometer.setX(previousX);
@@ -219,7 +274,9 @@ public class Navigation extends Thread{
 		
 		//convert into degrees
 		angle = Math.toDegrees(angle);
-		
+		//System.out.println("\n\n\n\n\n\n\n\n" + angle);
+		//Sound.playNote(Sound.PIANO, 261, 200);
+		heading = angle;
 		return angle;
 	}
 	

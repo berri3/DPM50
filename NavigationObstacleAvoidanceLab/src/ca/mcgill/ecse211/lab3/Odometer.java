@@ -60,7 +60,7 @@ public class Odometer extends Thread {
       leftMotorLastTC = leftMotorTachoCount;
       rightMotorLastTC = rightMotorTachoCount;
       
-      //deltaD = (distL + distR)/2;
+      deltaD = (distL + distR)/2;
       deltaTRad = (distL - distR)/wheelW; //computing the change in angle (radians)
       deltaT = deltaTRad * 360 / (2*Math.PI); //radians -> degrees
       
@@ -78,8 +78,8 @@ public class Odometer extends Thread {
     	 else //if negative angle, add 360, since we want the positive value
     		 theta = ((theta + deltaT) % 360) + 360;
     	 
-         dX = distL*Math.sin(theta*Math.PI/180);
-         dY = distR*Math.cos(theta*Math.PI/180);
+         dX = deltaD*Math.sin(theta*Math.PI/180);
+         dY = deltaD*Math.cos(theta*Math.PI/180);
          
          //update position
     	 x = x + dX;

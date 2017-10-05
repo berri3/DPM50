@@ -12,17 +12,15 @@ public class Display extends Thread {
   private static final long DISPLAY_PERIOD = 250;
   private Odometer odometer;
   private TextLCD t;
-  private UltrasonicController cont;
   private Navigation navigation;
   private int leftMotorSpeed;
   private int rightMotorSpeed;
+  private double heading;
   
   // constructor
-  public Display(Odometer odometer, UltrasonicController cont,
-		  TextLCD t, Navigation aNavigation) {
+  public Display(Odometer odometer, TextLCD t, Navigation aNavigation) {
     this.odometer = odometer;
     this.t = t;
-    this.cont = cont;
     this.navigation = aNavigation;
   }
 
@@ -50,9 +48,6 @@ public class Display extends Thread {
         t.drawString(formattedDoubleToString(position[i], 2), 3, i);
       }
       
-      //display light sensor information
-      t.drawString("Light: " + OdometryCorrection.getLightSensor(), 0, 3);
-      
       //display US distance
       t.drawString("US Distance: " + navigation.getDistance(), 0, 4);
       
@@ -63,6 +58,9 @@ public class Display extends Thread {
       t.drawString("Left mot.: " + leftMotorSpeed, 0, 5);
       t.drawString("Right mot.: " + rightMotorSpeed, 0, 6);
       
+      //print heading to LCD
+      heading = Navigation.heading;
+      t.drawString("Heading: " + heading, 0, 7);
       
       // throttle the OdometryDisplay
       displayEnd = System.currentTimeMillis();

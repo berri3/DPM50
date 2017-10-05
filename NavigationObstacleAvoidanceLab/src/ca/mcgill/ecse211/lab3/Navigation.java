@@ -11,56 +11,50 @@ public class Navigation extends Thread{
 	private NXTRegulatedMotor rightMotor;
 	private EV3MediumRegulatedMotor sensorMotor;
 	private Odometer odometer;
-	private UltrasonicPoller usPoller;
 	private PController controller;
 	
 	//position variables
 	private double x;
 	private double y;
 	private double theta;
-	public static double heading;
+	public static double heading; //computed heading to destination from current position (when needed)
 	
 	//distance
-	private int currentDistance;
+	private int currentDistance; //as read by the US and given by the USPoller
 	
-	//some constants
+	//some constants (as per the main class; refer for description)
 	private double tileLength = NavigationObstacleAvoidanceLab.TILE_LENGTH;
 	private int forwardSpeed = NavigationObstacleAvoidanceLab.MOTOR_HIGH;
 	private double wheelRadius = NavigationObstacleAvoidanceLab.WHEEL_RADIUS;
 	private double track = NavigationObstacleAvoidanceLab.TRACK;
 	private int rotateSpeed = NavigationObstacleAvoidanceLab.ROTATE_SPEED;
 	private int acceleration = NavigationObstacleAvoidanceLab.MOTOR_ACCELERATION;
-	private int threshold = NavigationObstacleAvoidanceLab.THRESHOLD; //acceptable error for obstacle
+	private int threshold = NavigationObstacleAvoidanceLab.THRESHOLD;
 	private int angleThreshold = NavigationObstacleAvoidanceLab.ANGLE_THRESHOLD;
-	
-	//boolean
-	//private boolean isNavigating;
-	
 	
 	//constructor
 	public Navigation(NXTRegulatedMotor leftMotor, 
 			NXTRegulatedMotor rightMotor, 
 			EV3MediumRegulatedMotor sensorMotor, 
 			Odometer odometer, 
-			UltrasonicPoller usPoller,
 			PController pController) {
 		this.leftMotor = leftMotor;
 		this.rightMotor = rightMotor;
 		this.sensorMotor = sensorMotor;
 		this.odometer = odometer;
-		this.usPoller = usPoller;
 		this.controller = pController;
 	}
 	
+	//in order to start the thread
 	public void run() {
+		//possible maps to run for demo. Uncomment when necessary
 		
-	
-//		//Map 1
-//		travelTo(0,2); 
-//		travelTo(1,1); 
-//		travelTo(2,2); 
-//		travelTo(2,1); 
-//		travelTo(1,0);
+		//Map 1
+		travelTo(0,2); 
+		travelTo(1,1); 
+		travelTo(2,2); 
+		travelTo(2,1); 
+		travelTo(1,0);
 		
 //		//Map 2
 //		travelTo(1,1);
@@ -75,31 +69,29 @@ public class Navigation extends Thread{
 //		travelTo(2,2);
 //		travelTo(0,2);
 //		travelTo(1,1);
-		
-		travelTo(2,2);
-		travelTo(2,0);	
-		
-		//Map 4
+//		
+//		//Map 4
 //		travelTo(0,1);
 //		travelTo(1,2); 
 //		travelTo(1,0); 
 //		travelTo(2,1); 
 //		travelTo(2,2);
+		
+//		Other tests
+//		travelTo(2,2);
+//		travelTo(2,0);	
 	}
 	
 	void travelTo(double pointX, double pointY) {
 		double minAngle, travelDistance, distanceX, distanceY, deltaX, deltaY; //angleDifference;
 		
+		//set an appropriate acceleration to reduce odometer error and increase smoothness
 		leftMotor.setAcceleration(acceleration);
 		rightMotor.setAcceleration(acceleration);
-		
-		//update current position TODO: does it impact stuff?
-		x = odometer.getX();
-		y = odometer.getY();
-		
+
 		//convert point coordinates to actual distance *in cm*
-		distanceX = pointX*tileLength;
-		distanceY = pointY*tileLength;
+		distanceX = pointX * tileLength;
+		distanceY = pointY * tileLength;
 		
 		//calculate distance to travel from current position in each direction
 		deltaX = distanceX - odometer.getX();
@@ -112,23 +104,27 @@ public class Navigation extends Thread{
 		minAngle = computeHeading(distanceX, distanceY); //compute the required heading to turn to
 		turnTo(minAngle);
 		
-		//travel
+		//travel to destination
 		leftMotor.setSpeed(forwardSpeed);
 		rightMotor.setSpeed(forwardSpeed);
 		leftMotor.rotate(convertDistance(wheelRadius,travelDistance), true);
-		//TODO: set to true if want avoidance
+		//immediateReturn set to true so that motors will stop if encounter obstacle
 		rightMotor.rotate(convertDistance(wheelRadius, travelDistance), true);
 		
-		//obstacle check: do nothing if navigating and did not encounter obstacle yet
-		//else take appropriate action	
+		//obstacle check: do nothing if navigating and did not encounter obstacle yet;
+		//else take appropriate action
 		while(isNavigating() && currentDistance > threshold); //wait.
-		//will stop waiting either b/c: robot has finished traveling OR seen an obstacle
+		//will pass by while loop either b/c: robot has finished traveling OR seen an obstacle
 		
 		//if seen an obstacle while still moving
-		//TODO: how is this gonna work for recursive calls(?)
 		if(isNavigating()) {
-			Sound.playNote(Sound.PIANO, 650, 500);
-			double previousX, previousY, previousTheta;
+			Sound.playNote(Sound.PIANO, 650, 500); //play dissonant note :)
+			
+			//stored previous coordinates before a turn is made
+			//used to correct any errors on odometer during a turn
+			double previousX; 
+			double previousY;
+			double previousTheta;
 			
 			//decelerate to avoid slip; therefore not using .stop()
 			leftMotor.setSpeed(0);
@@ -152,85 +148,84 @@ public class Navigation extends Thread{
 			odometer.setX(previousX);
 			odometer.setY(previousY);
 			
-			//put sensor at 45 CCW°
-			//sensorMotor.setSpeed(25);
+			//put sensor at 60 CCW°
 			sensorMotor.setSpeed(25);
 			sensorMotor.rotateTo(-60);
 			
 			//to know when to stop the obstacle avoidance state, check if current angle is close
-			//to previous heading.
-			//update theta
-			//theta = odometer.getTheta();
+			//to the previous heading, minus 90°
+			//this would mean that the robot has gotten around most of the obstacle
 			
+			//angle to compare to in order to stop avoiding
 			double stopTheta = previousTheta - 90;
 			
-			if (stopTheta < 0){
+			if (stopTheta < 0){ //making sure that the angle stays within [0, 360[
 				stopTheta += 360;
 			}
 			
+			//continuously execute wall follower
 			while (Math.abs(odometer.getTheta() - stopTheta) > angleThreshold) {
-				// start p controller, continuously
 				controller.processUSData(currentDistance);
 				//P-controller should keep running until robot is at correct heading
-			}
+				//if we have the correct heading, exit the while loop
+			}		
 			
-			
-			//continually compute the new required heading and see if we're close to it
-//			while (Math.abs(computeHeading(distanceX, distanceY) - odometer.getTheta())
-//					> angleThreshold) {
-//				// start p controller, continuously
-//				controller.processUSData(currentDistance);
-//				//P-controller should keep running until robot is at correct heading
-//			}
-//			
-			
+			//stop motors
 			rightMotor.stop(true);
-			leftMotor.stop(); 
+			leftMotor.stop();
 			
 			//put sensor back straight
 			sensorMotor.rotateTo(0);
-			//if we have the correct heading, exit the while loop:
-			//technically, a recursive call to travelTo should now work. #pray
+
+			//recursive call
 			travelTo(pointX, pointY);
 			
 		}
-		
-		//TODO: stop(?)
-//		leftMotor.stop(true);
-//		rightMotor.stop(true);
 	}
 	
-	//newAngle should be a value between 0 and 360
+	/**
+	 * method to turn the robot to the desired heading
+	 * with *hopefully* the minimal angle
+	 * Positive Y axis is 0°; angle going CW
+	 * @param theta
+	 */
 	void turnTo(double theta){
-		double previousX, previousY;
+		//stored previous coordinates before a turn is made
+		//used to correct any errors on odometer during a turn
+		double previousX; 
+		double previousY;
 		
 		previousX = odometer.getX();
 		previousY = odometer.getY();
 		
 		leftMotor.setSpeed(rotateSpeed);
 	    rightMotor.setSpeed(rotateSpeed);
-	    this.theta = odometer.getTheta();
 	    
+	    //difference between current angle and the desired heading
 		double angleDifference = theta - this.theta;
-		//turn to the right
+		
+		//turning to the right
+		//Case 1: Positive and [0, 180[
 		if ((0 <= angleDifference && angleDifference <= 180)){
 			leftMotor.rotate(convertAngle(wheelRadius, track, angleDifference), true);
 			rightMotor.rotate(-convertAngle(wheelRadius, track, angleDifference), false);
 			Sound.playNote(Sound.PIANO, 440, 200);
 		}
-		
+		//Case 2: Negative and ]-360, -180]
 		else if( angleDifference < -180 ) {
 			leftMotor.rotate(convertAngle(wheelRadius, track, angleDifference+360), true);
 			rightMotor.rotate(-convertAngle(wheelRadius, track, angleDifference+360), false);
 			Sound.playNote(Sound.PIANO, 500, 200);
 		}
-		//turn to the left
+		
+		//turning to the left
+		//Case 3: Positive and ]180, 360[
 		else if (angleDifference > 180){
 			leftMotor.rotate(-convertAngle(wheelRadius, track, 360-angleDifference), true);
 			rightMotor.rotate(convertAngle(wheelRadius, track, 360-angleDifference), false);
 			Sound.playNote(Sound.PIANO, 880, 200);
 		}
-		//turn to the left
+		//Case 4: Negative and ]-180, 0[
 		else{
 			leftMotor.rotate(convertAngle(wheelRadius, track, angleDifference), true);
 			rightMotor.rotate(-convertAngle(wheelRadius, track, angleDifference), false);
@@ -243,22 +238,56 @@ public class Navigation extends Thread{
 	
 	//This method returns true if another thread has called travelTo() or turnTo()
 	//and the method has yet to return; false otherwise.
-	//TODO: something to do with avoidance(?)
+	
+	
+	/**
+	 *This method returns true if another thread has called travelTo() or turnTo()
+	 *and the method has yet to return; false otherwise.
+	 *Simply put, checks if either wheel is moving.
+	 * @param 
+	 * @return isNavigating: boolean
+	 */
 	boolean isNavigating() {
 		boolean isNavigating;
 		isNavigating = leftMotor.isMoving() || rightMotor.isMoving();
 		return isNavigating;
 	}
 	
+	/**
+	 * Converts a given distance into number of wheel rotations for
+	 * a wheel with a specific radius
+	 * @param radius
+	 * @param distance
+	 * @return int
+	 */
 	private static int convertDistance(double radius, double distance) {
 	    return (int) ((180.0 * distance) / (Math.PI * radius));
 	}
 	
+	
+	/**
+	 * Converts a given angle into number of wheel rotations for
+	 * a wheel with a specific radius
+	 * @param radius
+	 * @param width
+	 * @param angle
+	 * @return int
+	 * 
+	 */
 	private static int convertAngle(double radius, double width, double angle) {
 		    return convertDistance(radius, Math.PI * width * angle / 360.0);
 	}
 	
 	//takes in distance (coordinates in cm, not points)
+	/**
+	 * calculates the required heading from current position
+	 * to required position
+	 * takes in coordinates from odometer
+	 * @param destinationX
+	 * @param destinationY
+	 * @return double
+	 * 
+	 */
 	private double computeHeading(double destinationX, double destinationY) {
 		//calculate distance to travel from current position in each direction
 		double deltaX, deltaY, angle;
@@ -274,13 +303,13 @@ public class Navigation extends Thread{
 		
 		//convert into degrees
 		angle = Math.toDegrees(angle);
-		//System.out.println("\n\n\n\n\n\n\n\n" + angle);
-		//Sound.playNote(Sound.PIANO, 261, 200);
 		heading = angle;
 		return angle;
 	}
-	
-	//sets the distance as read by the US and by the usPoller
+	/**
+	 *sets the distance as read by the US and by the usPoller
+	 * 
+	 */
 	public void setDistance(int distance) {
 		currentDistance = distance;
 	}

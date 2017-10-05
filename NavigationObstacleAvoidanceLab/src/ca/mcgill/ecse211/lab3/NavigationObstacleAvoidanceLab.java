@@ -61,14 +61,13 @@ public class NavigationObstacleAvoidanceLab {
     		rightMotor,
     		sensorMotor,
     		odometer,
-    		usPoller,
     		pController);
     
     //add the navigation to the poller
     usPoller.addNavigation(navigation);
     
     //set up display
-    Display display = new Display(odometer, pController, t, navigation);
+    Display display = new Display(odometer, t, navigation);
     		
     do {
       // clear the display
@@ -98,7 +97,6 @@ public class NavigationObstacleAvoidanceLab {
       // clear the display
       t.clear();
 
-      // ask the user whether the motors should drive in a square or float
       t.drawString("< Left | Right >", 0, 0);
       t.drawString("  No   | With   ", 0, 1);
       t.drawString(" avoi- |  avoi- ", 0, 2);
@@ -107,6 +105,7 @@ public class NavigationObstacleAvoidanceLab {
       
       buttonChoice = Button.waitForAnyPress();
       
+      //start threads
       odometer.start();
       display.start();
       usPoller.start();

@@ -5,7 +5,12 @@ public class PController implements UltrasonicController {
   /* Constants */
   private static final int MOTOR_SPEED = 130; //default motor speed
   private static final int FILTER_OUT = 50; //used for the filter below
-
+  private static final int MAX_ACCELERATION = 6000;
+  private static final int CORRECTION_FACTOR1 = 8;
+  private static final int CORRECTION_FACTOR2 = 6;
+  private static final double CORRECTION_FACTOR3 = 1.5;
+  private static final int TOO_FAR = 50;
+  
   private final int bandCenter;
   private final int bandWidth;
   private int distance;
@@ -51,8 +56,8 @@ public class PController implements UltrasonicController {
     //versus the wanted distance
     distError = bandCenter - this.distance; 
     
-    NavigationObstacleAvoidanceLab.leftMotor.setAcceleration(6000);
-    NavigationObstacleAvoidanceLab.rightMotor.setAcceleration(6000);
+    NavigationObstacleAvoidanceLab.leftMotor.setAcceleration(MAX_ACCELERATION);
+    NavigationObstacleAvoidanceLab.rightMotor.setAcceleration(MAX_ACCELERATION);
     
     
     //error within acceptable limit; move forward normally
@@ -70,7 +75,7 @@ public class PController implements UltrasonicController {
     else if(distError > 0){ //too close
     	
     	//correction based on the error times a factor (8)
-    	correction = Math.abs(distError) * 8;
+    	correction = Math.abs(distError) * CORRECTION_FACTOR1;
     	
     	if (correction < 120) //capping the speed at 120 to avoid the robot running too fast
     		//robot not too fast: the deltaSpeed is the correction
@@ -83,21 +88,22 @@ public class PController implements UltrasonicController {
     	NavigationObstacleAvoidanceLab.leftMotor.forward();
     	NavigationObstacleAvoidanceLab.rightMotor.forward();
     }
+    
     else if(distError < 0){  //turn towards the wall
     	//correction based on the error times a factor (6)
-    	correction = Math.abs(distError) * 6;
+    	correction = Math.abs(distError) * CORRECTION_FACTOR2;
     	
-    	if (Math.abs(correction)< 100) //capping the speed at 100
+    	if (Math.abs(correction) < 100) //capping the speed at 100
     		deltaSpeed = correction;
     	else
     		deltaSpeed = 100;
-    	if (this.distance > 50) { //if making a large angle turn (to get around block)
+    	if (this.distance > TOO_FAR) { //if making a large angle turn (to get around block)
     		//reduce the left motor a bit less than the DELTASPD since the robot
         	//often turns too much and makes a u-turn instead
     		NavigationObstacleAvoidanceLab.leftMotor.setSpeed((int) (MOTOR_SPEED));
     	}
     	else { //if going towards wall just to adjust distance
-    		NavigationObstacleAvoidanceLab.leftMotor.setSpeed((int) (MOTOR_SPEED - deltaSpeed*1.5));
+    		NavigationObstacleAvoidanceLab.leftMotor.setSpeed((int) (MOTOR_SPEED - deltaSpeed*CORRECTION_FACTOR3));
     	}
     	NavigationObstacleAvoidanceLab.rightMotor.setSpeed(MOTOR_SPEED + deltaSpeed);
     	NavigationObstacleAvoidanceLab.leftMotor.forward();
@@ -113,4 +119,4 @@ public class PController implements UltrasonicController {
     return this.distance;
   }
 
-}
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       

@@ -12,13 +12,11 @@ import lejos.robotics.SampleProvider;
 public class UltrasonicPoller extends Thread {
   private SampleProvider us;
   private Navigation navigation;
-  //private UltrasonicController cont;
   private float[] usData;
   
 
   public UltrasonicPoller(SampleProvider us, float[] usData, UltrasonicController cont) {
     this.us = us;
-    //this.cont = cont;
     this.usData = usData;
   }
 

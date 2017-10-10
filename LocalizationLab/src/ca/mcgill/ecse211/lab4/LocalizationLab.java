@@ -33,15 +33,16 @@ public class LocalizationLab {
   public static final int MOTOR_HIGH = 110; // Speed of the faster rotating wheel (deg/sec)
   public static final int ROTATE_SPEED = 75; //in deg/s
   public static final int MOTOR_ACCELERATION = 150; //in deg/s^2
+  public static final int DEFAULT_ACCELERATION = 6000;
   
   //TODO: added
-  public static final int THRESHOLD = 30; //distance threshold before considering wall seen
-  public static final int NOISE_MARGIN = 3;
+  public static final int THRESHOLD = 45; //distance threshold before considering wall seen
+  public static final int NOISE_MARGIN = 15;
   public static final long CORRECTION_PERIOD = 10;
   public static final double BLACK_LINE = 13.0; //value corresponding to the signal returned
   												 //to the light sensor by a black line
   
-  public static final double SENSOR_DISTANCE = 0;
+  public static final double SENSOR_DISTANCE = 13.0;
   public static final int FILTER_OUT = 50; //used for the filter below
 
   public static void main(String[] args) {
@@ -116,10 +117,9 @@ public class LocalizationLab {
     } while (buttonChoice != Button.ID_LEFT && buttonChoice != Button.ID_RIGHT);
 
     if (buttonChoice == Button.ID_LEFT) { //do lightLocalizer
-     
-
       odometer.start();
       display.start();
+      lightLocalizer.start();
 
     } else { //do usLocalizer
       // clear the display

@@ -6,7 +6,9 @@ import lejos.hardware.motor.NXTRegulatedMotor;
 
 public class UltrasonicLocalizer extends Thread{
 	//TODO: enum
-	public enum LocalizationType {FALLING_EDGE, RISING_EDGE};
+	public enum LocalizationType {FALLING_EDGE, RISING_EDGE}
+
+	private static final int thetaError = -10;  //TODO
 	
 	private LocalizationType localizationType;
 	
@@ -33,6 +35,7 @@ public class UltrasonicLocalizer extends Thread{
 	private int forwardSpeed = LocalizationLab.MOTOR_HIGH;
 	private int rotateSpeed = LocalizationLab.ROTATE_SPEED;
 	private int acceleration = LocalizationLab.MOTOR_ACCELERATION;
+	private int defaultAcceleration = LocalizationLab.DEFAULT_ACCELERATION;
 	//TODO: added(?)
 	private int threshold = LocalizationLab.THRESHOLD;
 	private int noiseMargin = LocalizationLab.NOISE_MARGIN;
@@ -150,11 +153,15 @@ public class UltrasonicLocalizer extends Thread{
 	}
 	
 	private double computeDeltaTheta(){
+		
+		//case 1
 		if(thetaA > thetaB){
 			deltaTheta = 45 - (thetaA + thetaB)/2.0;
-		} 
+		}
+		
+		//case 2
 		else {
-			deltaTheta = 255 - (thetaA + thetaB)/2.0;
+			deltaTheta = (255 + thetaError) - ((thetaA + thetaB)/2.0);
 		}
 		//Sound.playNote(Sound.PIANO, 880, 200);
 		return deltaTheta;
@@ -176,8 +183,10 @@ public class UltrasonicLocalizer extends Thread{
 	}
 	
 	private void stopMotors(){
-		rightMotor.stop(true);
-		leftMotor.stop();
+		leftMotor.setAcceleration(defaultAcceleration);
+		rightMotor.setAcceleration(defaultAcceleration);
+		leftMotor.stop(true);
+		rightMotor.stop();
 	}
 	
 	private int filterDistance(int distance){
@@ -214,5 +223,10 @@ public class UltrasonicLocalizer extends Thread{
 	
 	public int getFilteredDistance() {
 		return filteredDistance;
+	}
+	
+	public int getCurrentDistance() {
+		return currentDistance;
+		}
 	}
 }

@@ -51,10 +51,13 @@ public class LightLocalizer extends Thread{
 	private int forwardSpeed = LocalizationLab.MOTOR_HIGH;
 	private int rotateSpeed = LocalizationLab.ROTATE_SPEED;
 	private int acceleration = LocalizationLab.MOTOR_ACCELERATION;
+	private double wheelRadius = LocalizationLab.WHEEL_RADIUS;
+	private double track = LocalizationLab.TRACK;
 	//TODO: added(?)
 	private int threshold = LocalizationLab.THRESHOLD;
 	private double noiseMargin = LocalizationLab.NOISE_MARGIN;
 	private double sensorDistance = LocalizationLab.SENSOR_DISTANCE;
+	private double blackLine = LocalizationLab.BLACK_LINE;
 	
 	
 	
@@ -76,23 +79,38 @@ public class LightLocalizer extends Thread{
 	}
 	
 	public void run(){
-
+		
+		
 	    turn360();
 	    int counter = 0;
+	    readLine = false;
 	    while (counter < 4) {
 
 	        myLight.fetchSample(sampleLight, 0); //store a data sample in array sampleLight starting at index 0
 	        lightSensorValue = sampleLight[0]; //store that value in a variable
 	        
 	        //if robot is on a black line for the first time
-	        if(lightSensorValue >= BLACK_LINE && !readLine) {
+	        if(lightSensorValue >= blackLine && !readLine) {
 	      	  
 	      	  	//passed a line: increment the line counter
 	      	  
 	        	thetaArray[counter] = odometer.getTheta();
 	        	counter ++;
+	        
+	        
+	        readLine = true; //finished reading the line.
+	        }
+	        else { //either actually not on a black line OR one one but already finished reading it
+	        	readLine = false;
 	        }
 	    }
+	    
+	    //compute & store correct position in odometer
+	    computePosition();
+	    
+	    //travel to *hopefully* (0,0)
+	    navigation.travelTo(0,0);
+	    navigation.turnTo(0);
 	    
 	}
 	
@@ -104,8 +122,12 @@ public class LightLocalizer extends Thread{
 	}
 	
 	private void turn360(){
-		leftMotor.rotate(-360);
-		rightMotor.rotate(360);
+		leftMotor.setAcceleration(acceleration);
+		rightMotor.setAcceleration(acceleration);
+		leftMotor.setSpeed(rotateSpeed);
+		rightMotor.setSpeed(rotateSpeed);
+		leftMotor.rotate(-Navigation.convertAngle(wheelRadius, track, 360));
+		rightMotor.rotate(Navigation.convertAngle(wheelRadius, track, 360));
 	}
 	
 	private void computePosition(){
@@ -120,6 +142,9 @@ public class LightLocalizer extends Thread{
 		
 		x = -sensorDistance * Math.cos(thetaY/2);
 		y = -sensorDistance * Math.cos(thetaX/2);
+		
+		odometer.setX(x);
+		odometer.setY(y);
 	}
 
 }

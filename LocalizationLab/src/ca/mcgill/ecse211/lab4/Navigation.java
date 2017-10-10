@@ -225,7 +225,7 @@ public class Navigation extends Thread{
 	 * @param distance
 	 * @return int
 	 */
-	private static int convertDistance(double radius, double distance) {
+	public static int convertDistance(double radius, double distance) {
 	    return (int) ((180.0 * distance) / (Math.PI * radius));
 	}
 	
@@ -239,7 +239,7 @@ public class Navigation extends Thread{
 	 * @return int
 	 * 
 	 */
-	private static int convertAngle(double radius, double width, double angle) {
+	public static int convertAngle(double radius, double width, double angle) {
 		    return convertDistance(radius, Math.PI * width * angle / 360.0);
 	}
 	

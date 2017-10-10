@@ -103,7 +103,9 @@ public class UltrasonicLocalizer extends Thread{
 		rotateCCW();
 		while (usPoller.getDistance() > threshold - noiseMargin );
 		rotateCCW();
-		while (usPoller.getDistance() < threshold );
+		while (usPoller.getDistance() < threshold ); //wait while it's still seeing a wall
+		
+		//but now it rises.
 		// stop the motors and return the angle
 		Sound.playNote(Sound.PIANO, 440, 200);
 		stopMotors();

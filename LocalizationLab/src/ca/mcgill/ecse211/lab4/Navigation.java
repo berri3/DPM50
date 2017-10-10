@@ -74,7 +74,7 @@ public class Navigation extends Thread{
 		rightMotor.setSpeed(forwardSpeed);
 		leftMotor.rotate(convertDistance(wheelRadius,travelDistance), true);
 		//immediateReturn set to true so that motors will stop if encounter obstacle
-		rightMotor.rotate(convertDistance(wheelRadius, travelDistance), true);
+		rightMotor.rotate(convertDistance(wheelRadius, travelDistance), false);
 		
 //		//obstacle check: do nothing if navigating and did not encounter obstacle yet;
 //		//else take appropriate action

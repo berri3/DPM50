@@ -28,7 +28,7 @@ public class LocalizationLab {
 
   //some constants
   public static final double WHEEL_RADIUS = 2.1; //in cm
-  public static final double TRACK = 12.5; //distance between the two wheels in cm
+  public static final double TRACK = 14.1; //distance between the two wheels in cm
   public static final double TILE_LENGTH = 30.48; //in cm, as provided
   public static final int MOTOR_HIGH = 110; // Speed of the faster rotating wheel (deg/sec)
   public static final int ROTATE_SPEED = 75; //in deg/s

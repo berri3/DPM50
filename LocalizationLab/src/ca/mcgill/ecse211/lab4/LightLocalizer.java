@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.lab4;
 
+import lejos.hardware.Sound;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.hardware.port.Port;
@@ -81,11 +82,10 @@ public class LightLocalizer extends Thread {
 	
 	public void localize(){
 		
-		
 	    turn360();
 	    int counter = 0;
 	    readLine = false;
-	    while (counter < 4) {
+	    while (counter < 4 && (leftMotor.isMoving() || rightMotor.isMoving())) {
 
 	        myLight.fetchSample(sampleLight, 0); //store a data sample in array sampleLight starting at index 0
 	        lightSensorValue = sampleLight[0]; //store that value in a variable
@@ -99,20 +99,36 @@ public class LightLocalizer extends Thread {
 	        	counter ++;
 	        
 	        
-	        readLine = true; //finished reading the line.
+	        	readLine = true; //finished reading the line.
+	        	Sound.playNote(Sound.PIANO, 880, 200);
 	        }
 	        else { //either actually not on a black line OR one one but already finished reading it
 	        	readLine = false;
 	        }
 	    }
+
 	    
+	    while (Math.abs(odometer.getTheta() - 0) > 1); //wait until does full turn
 	    //stop motors
 	    stopMotors();
+	    
+	    
+	    try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	    
 	    //compute & store correct position in odometer
 	    computePosition();
 	    
-	    
+	    try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	    
 	    //travel to *hopefully* (0,0)
 	    navigation.travelTo(0,0);
@@ -154,8 +170,8 @@ public class LightLocalizer extends Thread {
 		thetaY = Math.abs(thetaArray[2] - thetaArray[0]);
 		thetaX = Math.abs(thetaArray[3] - thetaArray[1]);
 		
-		x = -sensorDistance * Math.cos(thetaY/2);
-		y = -sensorDistance * Math.cos(thetaX/2);
+		x = -sensorDistance * Math.cos(Math.toRadians(thetaY/2));
+		y = -sensorDistance * Math.cos(Math.toRadians(thetaX/2));
 		
 		odometer.setX(x);
 		odometer.setY(y);

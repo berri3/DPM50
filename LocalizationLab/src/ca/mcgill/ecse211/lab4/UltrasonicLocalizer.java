@@ -8,8 +8,8 @@ public class UltrasonicLocalizer extends Thread{
 	//TODO: enum
 	public enum LocalizationType {FALLING_EDGE, RISING_EDGE}
 
-	private static final int fallingThetaError = -10;  //TODO
-	private static final int risingThetaError = 0;
+	private static final int fallingThetaError = -20;  //TODO
+	private static final int risingThetaError = -20;
 	
 	private LocalizationType localizationType;
 	
@@ -118,7 +118,7 @@ public class UltrasonicLocalizer extends Thread{
 
 		rotateCW();
 		try {
-			Thread.sleep(2000);
+			Thread.sleep(2500);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -160,7 +160,7 @@ public class UltrasonicLocalizer extends Thread{
 		//rotate CCW to get angle B (where thetaA < thetaB)
 		rotateCCW();
 		try {
-			Thread.sleep(2000);
+			Thread.sleep(2500);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -195,12 +195,12 @@ public class UltrasonicLocalizer extends Thread{
 		else{
 			//case 1
 			if(thetaA > thetaB){
-				deltaTheta = 225 - (thetaA + thetaB)/2.0;
+				deltaTheta = 45 - (thetaA + thetaB)/2.0;
 			}
 			
 			//case 2
 			else {
-				deltaTheta = (45 + risingThetaError) - ((thetaA + thetaB)/2.0);
+				deltaTheta = (255 + risingThetaError) - ((thetaA + thetaB)/2.0);
 			}
 			//Sound.playNote(Sound.PIANO, 880, 200);
 			

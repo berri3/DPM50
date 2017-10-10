@@ -4,9 +4,11 @@ import lejos.hardware.Sound;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.motor.NXTRegulatedMotor;
 
-public class UltrasonicLocalizer {
+public class UltrasonicLocalizer extends Thread{
 	//TODO: enum
 	public enum LocalizationType {FALLING_EDGE, RISING_EDGE};
+	
+	private LocalizationType localizationType;
 	
 	//motors and stuff
 	private NXTRegulatedMotor leftMotor;
@@ -22,6 +24,10 @@ public class UltrasonicLocalizer {
 	
 	//distance
 	private int currentDistance; //as read by the US and given by the USPoller
+	private int filteredDistance; //as filtered
+	
+	//filter stuff
+	private int filterControl;
 	
 	//some constants (as per the main class; refer for description)
 	private int forwardSpeed = LocalizationLab.MOTOR_HIGH;
@@ -29,7 +35,9 @@ public class UltrasonicLocalizer {
 	private int acceleration = LocalizationLab.MOTOR_ACCELERATION;
 	//TODO: added(?)
 	private int threshold = LocalizationLab.THRESHOLD;
-	private double noiseMargin = LocalizationLab.NOISE_MARGIN;
+	private int noiseMargin = LocalizationLab.NOISE_MARGIN;
+	private int filterOut = LocalizationLab.FILTER_OUT;
+	
 	
 	//constructor
 	public UltrasonicLocalizer(NXTRegulatedMotor leftMotor, 
@@ -44,15 +52,21 @@ public class UltrasonicLocalizer {
 		this.navigation = aNavigation;
 	}
 	
-	public void run(LocalizationType aLocalizationType){	
+	public void localize(LocalizationType aLocalizationType){	
+		localizationType = aLocalizationType;
+		this.start();
 		
+	}
+	
+	public void run(){
 		leftMotor.setAcceleration(acceleration);
 		rightMotor.setAcceleration(acceleration);
+		filterControl = 0;
 		
-		if(aLocalizationType == LocalizationType.RISING_EDGE){
+		if(localizationType == LocalizationType.RISING_EDGE){
 			risingEdge();
 		}
-		else if(aLocalizationType == LocalizationType.FALLING_EDGE){
+		else if(localizationType == LocalizationType.FALLING_EDGE){
 			fallingEdge();
 		}
 		else{ //default or invalid option
@@ -63,7 +77,8 @@ public class UltrasonicLocalizer {
 		computeDeltaTheta();
 		
 		//adjust the odometer's theta value 
-		odometer.setTheta(odometer.getTheta() + deltaTheta);
+		double currentTheta = odometer.getTheta();
+		odometer.setTheta(currentTheta + deltaTheta);
 		
 		//turn the robot to the *hopefully* appropriate origin
 		navigation.turnTo(0);
@@ -72,10 +87,10 @@ public class UltrasonicLocalizer {
 	public void risingEdge() {
 		//getting thetaA: angle of horizontal wall
 		//rotate CCW to get angle A (where thetaA < thetaB)
-		while (currentDistance > threshold - noiseMargin ) {
+		while (filterDistance(currentDistance) > threshold - noiseMargin ) {
 			rotateCCW();
 		}
-		while (currentDistance < threshold ) {
+		while (filterDistance(currentDistance) < threshold ) {
 			rotateCCW();
 		}
 		// stop the motors and return the angle
@@ -87,10 +102,10 @@ public class UltrasonicLocalizer {
 		
 		//getting thetaB: angle of vertical wall
 		//rotate CW to get angle B (where thetaA < thetaB)
-		while (currentDistance > threshold - noiseMargin ) {
+		while (filterDistance(currentDistance) > threshold - noiseMargin ) {
 			rotateCW();
 		}
-		while (currentDistance < threshold ) {
+		while (filterDistance(currentDistance) < threshold ) {
 			rotateCW();
 		}
 		// stop the motors and return the angle
@@ -105,10 +120,10 @@ public class UltrasonicLocalizer {
 	public void fallingEdge() {
 		//getting thetaA: angle of horizontal wall
 		//rotate CW to get angle A (where thetaA < thetaB)
-		while (currentDistance < threshold + noiseMargin ) {
+		while (filterDistance(currentDistance) < threshold + noiseMargin ) {
 			rotateCW();
 		}
-		while (currentDistance > threshold ) {
+		while (filterDistance(currentDistance) > threshold ) {
 			rotateCW();
 		}
 		// stop the motors and return the angle
@@ -120,10 +135,10 @@ public class UltrasonicLocalizer {
 		
 		//getting thetaB: angle of vertical wall
 		//rotate CCW to get angle B (where thetaA < thetaB)
-		while (currentDistance < threshold + noiseMargin ) {
+		while (filterDistance(currentDistance) < threshold + noiseMargin ) {
 			rotateCCW();
 		}
-		while (currentDistance > threshold ) {
+		while (filterDistance(currentDistance) > threshold ) {
 			rotateCCW();
 		}
 		// stop the motors and return the angle
@@ -136,10 +151,12 @@ public class UltrasonicLocalizer {
 	
 	private double computeDeltaTheta(){
 		if(thetaA > thetaB){
-			deltaTheta = 225 - (thetaA + thetaB)/2.0;
-		} else {
 			deltaTheta = 45 - (thetaA + thetaB)/2.0;
+		} 
+		else {
+			deltaTheta = 255 - (thetaA + thetaB)/2.0;
 		}
+		//Sound.playNote(Sound.PIANO, 880, 200);
 		return deltaTheta;
 	}
 	
@@ -162,6 +179,30 @@ public class UltrasonicLocalizer {
 		rightMotor.stop(true);
 		leftMotor.stop();
 	}
+	
+	private int filterDistance(int distance){
+	    // rudimentary filter - toss out invalid samples corresponding to null
+	    // signal.
+	    // (n.b. this was not included in the Bang-bang controller, but easily
+	    // could have).
+	    //
+		filteredDistance = distance;
+	    if (distance >= 255 && filterControl < filterOut) {
+	      // bad value, do not set the distance var, however do increment the
+	      // filter value
+	      filterControl++;
+	    } else if (distance >= 255) {
+	      // We have repeated large values, so there must actually be nothing
+	      // there: leave the distance alone
+	      filteredDistance = 300; //capped at 300
+	    } else {
+	      // distance went below 255: reset filter and leave
+	      // distance alone.
+	      filterControl = 0;
+	      filteredDistance = distance;
+	    }
+	    return filteredDistance;
+	}
 
 	/**
 	 *sets the distance as read by the US and by the usPoller
@@ -171,7 +212,7 @@ public class UltrasonicLocalizer {
 		currentDistance = distance;
 	}
 	
-	public int getDistance() {
-		return currentDistance;
+	public int getFilteredDistance() {
+		return filteredDistance;
 	}
 }

@@ -44,39 +44,7 @@ public class Navigation extends Thread{
 	
 	//in order to start the thread
 	public void run() {
-		//possible maps to run for demo. Uncomment when necessary
-		
-		//Map 1
-		travelTo(0,2); 
-		travelTo(1,1); 
-		travelTo(2,2); 
-		travelTo(2,1); 
-		travelTo(1,0);
-		
-//		//Map 2
-//		travelTo(1,1);
-//		travelTo(0,2);
-//		travelTo(2,2);
-//		travelTo(2,1);
-//		travelTo(1,0);
-		
-		//Map 3
-//		travelTo(1,0);
-//		travelTo(2,1);
-//		travelTo(2,2);
-//		travelTo(0,2);
-//		travelTo(1,1);
-//		
-//		//Map 4
-//		travelTo(0,1);
-//		travelTo(1,2); 
-//		travelTo(1,0); 
-//		travelTo(2,1); 
-//		travelTo(2,2);
-		
-//		Other tests
-//		travelTo(2,2);
-//		travelTo(2,0);	
+		//TODO: wait for other method calls tbh lmao
 	}
 	
 	public void travelTo(double pointX, double pointY) {
@@ -199,7 +167,7 @@ public class Navigation extends Thread{
 	    rightMotor.setSpeed(rotateSpeed);
 	    
 	    //difference between current angle and the desired heading
-		double angleDifference = theta - this.theta;
+		double angleDifference = theta - odometer.getTheta();
 		
 		//turning to the right
 		//Case 1: Positive and [0, 180[

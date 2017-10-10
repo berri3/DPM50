@@ -7,7 +7,7 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 
-public class LightLocalizer {
+public class LightLocalizer extends Thread{
 	
 	//motors and stuff
 	private NXTRegulatedMotor leftMotor;
@@ -17,13 +17,18 @@ public class LightLocalizer {
 	private Odometer odometer;
 	private Navigation navigation;
 	
-	//initialize light sensor
-	//2. get an instance of the sensor using the port
-	private final SensorModes myLight = new EV3ColorSensor(lightPort);
-	//3. get instance of sensor in specified measurement mode
-	private final SampleProvider myLightSample = myLight.getMode("Red");
-	//4. allocate memory buffer to for received data
-	private float[] sampleLight = new float[myLightSample.sampleSize()];
+	private SensorModes myLight;
+	private float[] sampleLight;
+	
+//	//initialize light sensor
+//	//2. get an instance of the sensor using the port
+//	private final SensorModes myLight = new EV3ColorSensor(lightPort);
+//	//3. get instance of sensor in specified measurement mode
+//	private final SampleProvider myLightSample = myLight.getMode("Red");
+//	//4. allocate memory buffer to for received data
+//	private float[] sampleLight = new float[myLightSample.sampleSize()];
+	
+	
 	
 	//position variables
 	private double thetaA;
@@ -36,6 +41,12 @@ public class LightLocalizer {
 	//light sensor value
 	private float lightSensorValue;
 	
+	//boolean
+	private boolean readLine;
+	
+	//array
+	private double[] thetaArray = new double[4];
+	
 	//some constants (as per the main class; refer for description)
 	private int forwardSpeed = LocalizationLab.MOTOR_HIGH;
 	private int rotateSpeed = LocalizationLab.ROTATE_SPEED;
@@ -43,6 +54,8 @@ public class LightLocalizer {
 	//TODO: added(?)
 	private int threshold = LocalizationLab.THRESHOLD;
 	private double noiseMargin = LocalizationLab.NOISE_MARGIN;
+	private double sensorDistance = LocalizationLab.SENSOR_DISTANCE;
+	
 	
 	
 	//constructor
@@ -51,28 +64,62 @@ public class LightLocalizer {
 			EV3MediumRegulatedMotor sensorMotor, 
 			Odometer odometer,
 			Navigation aNavigation,
-			Port aLightPort) {
+			SensorModes mylight,
+			float[] sampleLight) {
 		this.leftMotor = leftMotor;
 		this.rightMotor = rightMotor;
 		this.sensorMotor = sensorMotor;
 		this.odometer = odometer;
 		this.navigation = aNavigation;
-		this.lightPort = aLightPort;
+		this.myLight = mylight;
+		this.sampleLight = sampleLight;
 	}
 	
 	public void run(){
-		
-		myLight.fetchSample(sampleLight, 0); //store a data sample in array sampleLight starting at index 0
-	    lightSensorValue = sampleLight[0]; //store that value in a variable
-	    
+
+	    turn360();
+	    int counter = 0;
+	    while (counter < 4) {
+
+	        myLight.fetchSample(sampleLight, 0); //store a data sample in array sampleLight starting at index 0
+	        lightSensorValue = sampleLight[0]; //store that value in a variable
+	        
+	        //if robot is on a black line for the first time
+	        if(lightSensorValue >= BLACK_LINE && !readLine) {
+	      	  
+	      	  	//passed a line: increment the line counter
+	      	  
+	        	thetaArray[counter] = odometer.getTheta();
+	        	counter ++;
+	        }
+	    }
 	    
 	}
+	
+	
 	
 	
 	public float getLightSensor() {
 		return lightSensorValue;
 	}
 	
+	private void turn360(){
+		leftMotor.rotate(-360);
+		rightMotor.rotate(360);
+	}
 	
+	private void computePosition(){
+		double thetaY;
+		double thetaX;
+		double x;
+		double y;
+		
+		//compute thetaY and theta X
+		thetaY = Math.abs(thetaArray[2] - thetaArray[0]);
+		thetaX = Math.abs(thetaArray[3] - thetaArray[1]);
+		
+		x = -sensorDistance * Math.cos(thetaY/2);
+		y = -sensorDistance * Math.cos(thetaX/2);
+	}
 
 }

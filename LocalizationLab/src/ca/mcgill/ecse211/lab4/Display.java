@@ -54,21 +54,21 @@ public class Display extends Thread {
       }
       
       //display US distance
-      t.drawString("US Distance: " + ultrasonicLocalizer.getDistance(), 0, 4);
+      t.drawString("US Distance: " + ultrasonicLocalizer.getFilteredDistance(), 0, 3);
       
       //display light sensor information
-      t.drawString("Light: " + lightLocalizer.getLightSensor(), 0, 5);
+      t.drawString("Light: " + lightLocalizer.getLightSensor(), 0, 4);
       
       //print on the LCD the current speed of the two motors
       leftMotorSpeed = LocalizationLab.leftMotor.getRotationSpeed();
       rightMotorSpeed = LocalizationLab.rightMotor.getRotationSpeed();
       
-      t.drawString("Left mot.: " + leftMotorSpeed, 0, 6);
-      t.drawString("Right mot.: " + rightMotorSpeed, 0, 7);
+      t.drawString("Left mot.: " + leftMotorSpeed, 0, 5);
+      t.drawString("Right mot.: " + rightMotorSpeed, 0, 6);
       
       //print heading to LCD
       heading = Navigation.heading;
-      t.drawString("Heading: " + heading, 0, 8);
+      t.drawString("Heading: " + heading, 0, 7);
       
       // throttle the OdometryDisplay
       displayEnd = System.currentTimeMillis();

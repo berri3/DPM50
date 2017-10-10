@@ -8,6 +8,7 @@ import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.NXTRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.port.Port;
+import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
@@ -35,10 +36,13 @@ public class LocalizationLab {
   
   //TODO: added
   public static final int THRESHOLD = 30; //distance threshold before considering wall seen
-  public static final double NOISE_MARGIN = 3;
+  public static final int NOISE_MARGIN = 3;
   public static final long CORRECTION_PERIOD = 10;
   public static final double BLACK_LINE = 13.0; //value corresponding to the signal returned
   												 //to the light sensor by a black line
+  
+  public static final double SENSOR_DISTANCE = 0;
+  public static final int FILTER_OUT = 50; //used for the filter below
 
   public static void main(String[] args) {
     int buttonChoice;
@@ -49,6 +53,14 @@ public class LocalizationLab {
     SampleProvider usDistance = usSensor.getMode("Distance"); // usDistance provides samples from
                                                               // this instance
     float[] usData = new float[usDistance.sampleSize()]; 
+    
+    //set up light sensor
+	//2. get an instance of the sensor using the port
+	SensorModes myLight = new EV3ColorSensor(lightPort);
+	//3. get instance of sensor in specified measurement mode
+	SampleProvider myLightSample = myLight.getMode("Red");
+	//4. allocate memory buffer to for received data
+	float[] sampleLight = new float[myLightSample.sampleSize()];
     
     //set up odometer
     Odometer odometer = new Odometer(leftMotor, rightMotor);
@@ -78,10 +90,13 @@ public class LocalizationLab {
     		sensorMotor,
     		odometer,
     		navigation, 
-    		lightPort);
+    		myLight,
+    		sampleLight);
     
-    //add the navigation to the poller
+    //add the navigation and the usLocalizer to the poller
     usPoller.addNavigation(navigation);
+    usPoller.addUltrasonicLocalizer(ultrasonicLocalizer);
+    
     
     //set up display
     Display display = new Display(odometer, t, ultrasonicLocalizer, lightLocalizer);
@@ -122,13 +137,14 @@ public class LocalizationLab {
       odometer.start();
       display.start();
       usPoller.start();
+      navigation.start();
       
       if(buttonChoice == Button.ID_RIGHT){
-    	  ultrasonicLocalizer.run(LocalizationType.FALLING_EDGE);
+    	  ultrasonicLocalizer.localize(LocalizationType.FALLING_EDGE);
       }
       
-      else{//start navigation
-    	  ultrasonicLocalizer.run(LocalizationType.RISING_EDGE);
+      else{
+    	  ultrasonicLocalizer.localize(LocalizationType.RISING_EDGE);
       }
       
     }

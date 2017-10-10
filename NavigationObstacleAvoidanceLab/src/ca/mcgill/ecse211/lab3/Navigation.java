@@ -202,7 +202,7 @@ public class Navigation extends Thread{
 	    rightMotor.setSpeed(rotateSpeed);
 	    
 	    //difference between current angle and the desired heading
-		double angleDifference = theta - this.theta;
+		double angleDifference = theta - odometer.getTheta();
 		
 		//turning to the right
 		//Case 1: Positive and [0, 180[

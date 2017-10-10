@@ -103,6 +103,13 @@ public class UltrasonicLocalizer extends Thread{
 		rotateCCW();
 		while (usPoller.getDistance() > threshold - noiseMargin );
 		rotateCCW();
+		//sleep to avoid detecting a rising edge.
+		try {
+			Thread.sleep(2500);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		while (usPoller.getDistance() < threshold ); //wait while it's still seeing a wall
 		
 		//but now it rises.
@@ -137,11 +144,20 @@ public class UltrasonicLocalizer extends Thread{
 	public void fallingEdge() {
 		//getting thetaA: angle of horizontal wall
 		//rotate CW to get angle A (where thetaA < thetaB)
-//		detectedWall = false;
+//		detectedWall = false; TODO
 		rotateCW();
 		while (usPoller.getDistance() < threshold + noiseMargin ); //wait while it is facing wall
 		
 		rotateCW();
+		
+		//sleep to avoid detecting a rising edge.
+		try {
+			Thread.sleep(2500);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		while (usPoller.getDistance() > threshold ); //wait while it's facing out
 		
 		//when it senses the wall at first:

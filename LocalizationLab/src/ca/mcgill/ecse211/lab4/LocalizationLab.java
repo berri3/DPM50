@@ -36,8 +36,8 @@ public class LocalizationLab {
   public static final int DEFAULT_ACCELERATION = 6000;
   
   //TODO: added
-  public static final int THRESHOLD = 45; //distance threshold before considering wall seen
-  public static final int NOISE_MARGIN = 15;
+  public static final int THRESHOLD = 50; //distance threshold before considering wall seen
+  public static final int NOISE_MARGIN = 20;
   public static final long CORRECTION_PERIOD = 10;
   public static final double BLACK_LINE = 13.0; //value corresponding to the signal returned
   												 //to the light sensor by a black line

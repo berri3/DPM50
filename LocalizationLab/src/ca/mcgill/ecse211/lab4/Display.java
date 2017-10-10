@@ -54,7 +54,7 @@ public class Display extends Thread {
       }
       
       //display US distance
-      t.drawString("US Distance: " + ultrasonicLocalizer.getFilteredDistance(), 0, 3);
+      t.drawString("US Distance: " + ultrasonicLocalizer.getCurrentDistance(), 0, 3);
       
       //display light sensor information
       t.drawString("Light: " + lightLocalizer.getLightSensor(), 0, 4);

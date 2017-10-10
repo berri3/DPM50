@@ -7,7 +7,7 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 
-public class LightLocalizer extends Thread{
+public class LightLocalizer {
 	
 	//motors and stuff
 	private NXTRegulatedMotor leftMotor;
@@ -126,7 +126,7 @@ public class LightLocalizer extends Thread{
 		rightMotor.setAcceleration(acceleration);
 		leftMotor.setSpeed(rotateSpeed);
 		rightMotor.setSpeed(rotateSpeed);
-		leftMotor.rotate(-Navigation.convertAngle(wheelRadius, track, 360));
+		leftMotor.rotate(-Navigation.convertAngle(wheelRadius, track, 360), true);
 		rightMotor.rotate(Navigation.convertAngle(wheelRadius, track, 360));
 	}
 	

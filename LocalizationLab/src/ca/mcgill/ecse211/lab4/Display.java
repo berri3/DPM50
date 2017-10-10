@@ -11,21 +11,21 @@ public class Display extends Thread {
   private static final long DISPLAY_PERIOD = 250;
   private Odometer odometer;
   private TextLCD t;
-  private UltrasonicLocalizer ultrasonicLocalizer;
+//  private UltrasonicLocalizer ultrasonicLocalizer; TODO
   private LightLocalizer lightLocalizer;
+  private UltrasonicPoller usPoller;
   private int leftMotorSpeed;
   private int rightMotorSpeed;
   private double heading;
-
   
   // constructor
   public Display(Odometer odometer, 
 		  TextLCD t, 
-		  UltrasonicLocalizer ultrasonicLocalizer, 
+		  UltrasonicPoller usPoller, 
 		  LightLocalizer lightLocalizer) {
     this.odometer = odometer;
     this.t = t;
-    this.ultrasonicLocalizer = ultrasonicLocalizer;
+    this.usPoller = usPoller;
     this.lightLocalizer = lightLocalizer;
   }
 
@@ -54,7 +54,7 @@ public class Display extends Thread {
       }
       
       //display US distance
-      t.drawString("US Distance: " + ultrasonicLocalizer.getCurrentDistance(), 0, 3);
+      t.drawString("US Distance: " + usPoller.getDistance(), 0, 3);
       
       //display light sensor information
       t.drawString("Light: " + lightLocalizer.getLightSensor(), 0, 4);

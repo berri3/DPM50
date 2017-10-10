@@ -83,7 +83,8 @@ public class LocalizationLab {
     		rightMotor,
     		sensorMotor,
     		odometer,
-    		navigation);
+    		navigation, 
+    		usPoller);
     
     //set up localization
     LightLocalizer lightLocalizer = new LightLocalizer(leftMotor,
@@ -94,13 +95,13 @@ public class LocalizationLab {
     		myLight,
     		sampleLight);
     
-    //add the navigation and the usLocalizer to the poller
-    usPoller.addNavigation(navigation);
-    usPoller.addUltrasonicLocalizer(ultrasonicLocalizer);
+    //add the navigation and the usLocalizer to the poller TODO
+//    usPoller.addNavigation(navigation);
+//    usPoller.addUltrasonicLocalizer(ultrasonicLocalizer);
     
     
     //set up display
-    Display display = new Display(odometer, t, ultrasonicLocalizer, lightLocalizer);
+    Display display = new Display(odometer, t, usPoller, lightLocalizer);
     		
     do {
       // clear the display
@@ -119,7 +120,7 @@ public class LocalizationLab {
     if (buttonChoice == Button.ID_LEFT) { //do lightLocalizer
       odometer.start();
       display.start();
-      lightLocalizer.start();
+      lightLocalizer.run();
 
     } else { //do usLocalizer
       // clear the display

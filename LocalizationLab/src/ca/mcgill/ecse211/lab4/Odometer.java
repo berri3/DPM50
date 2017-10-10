@@ -14,8 +14,8 @@ public class Odometer extends Thread {
   
   private double distL, distR, deltaD, deltaTRad, deltaT, dX, dY; //used later for computing x, y, and theta
     
-  private double wheelR = LocalizationLab.WHEEL_RADIUS;
-  private double wheelW = LocalizationLab.TRACK;
+  private static double wheelR = LocalizationLab.WHEEL_RADIUS;
+  private static double wheelW = LocalizationLab.TRACK;
   private static final long ODOMETER_PERIOD = 25; /*odometer update period, in ms*/
   
   private NXTRegulatedMotor leftMotor;

@@ -8,7 +8,8 @@ public class UltrasonicLocalizer extends Thread{
 	//TODO: enum
 	public enum LocalizationType {FALLING_EDGE, RISING_EDGE}
 
-	private static final int thetaError = -10;  //TODO
+	private static final int fallingThetaError = -10;  //TODO
+	private static final int risingThetaError = 0;
 	
 	private LocalizationType localizationType;
 	
@@ -18,18 +19,22 @@ public class UltrasonicLocalizer extends Thread{
 	private EV3MediumRegulatedMotor sensorMotor; //TODO: not necessary(?)
 	private Odometer odometer;
 	private Navigation navigation;
+	private UltrasonicPoller usPoller;
 	
 	//position variables
 	private double thetaA;
 	private double thetaB;
 	private double deltaTheta;
 	
-	//distance
-	private int currentDistance; //as read by the US and given by the USPoller
-	private int filteredDistance; //as filtered
+	//distance TODO:
+//	private int currentDistance; //as read by the US and given by the USPoller
+//	private int filteredDistance; //as filtered
 	
 	//filter stuff
 	private int filterControl;
+	
+	//boolean
+	private boolean detectedWall;
 	
 	//some constants (as per the main class; refer for description)
 	private int forwardSpeed = LocalizationLab.MOTOR_HIGH;
@@ -40,6 +45,8 @@ public class UltrasonicLocalizer extends Thread{
 	private int threshold = LocalizationLab.THRESHOLD;
 	private int noiseMargin = LocalizationLab.NOISE_MARGIN;
 	private int filterOut = LocalizationLab.FILTER_OUT;
+
+	
 	
 	
 	//constructor
@@ -47,21 +54,23 @@ public class UltrasonicLocalizer extends Thread{
 			NXTRegulatedMotor rightMotor, 
 			EV3MediumRegulatedMotor sensorMotor, 
 			Odometer odometer,
-			Navigation aNavigation) {
+			Navigation aNavigation,
+			UltrasonicPoller usPoller) {
 		this.leftMotor = leftMotor;
 		this.rightMotor = rightMotor;
 		this.sensorMotor = sensorMotor;
 		this.odometer = odometer;
 		this.navigation = aNavigation;
+		this.usPoller = usPoller;
 	}
 	
 	public void localize(LocalizationType aLocalizationType){	
 		localizationType = aLocalizationType;
-		this.start();
+		localize();
 		
 	}
 	
-	public void run(){
+	public void localize(){
 		leftMotor.setAcceleration(acceleration);
 		rightMotor.setAcceleration(acceleration);
 		filterControl = 0;
@@ -90,12 +99,11 @@ public class UltrasonicLocalizer extends Thread{
 	public void risingEdge() {
 		//getting thetaA: angle of horizontal wall
 		//rotate CCW to get angle A (where thetaA < thetaB)
-		while (filterDistance(currentDistance) > threshold - noiseMargin ) {
-			rotateCCW();
-		}
-		while (filterDistance(currentDistance) < threshold ) {
-			rotateCCW();
-		}
+		
+		rotateCCW();
+		while (usPoller.getDistance() > threshold - noiseMargin );
+		rotateCCW();
+		while (usPoller.getDistance() < threshold );
 		// stop the motors and return the angle
 		Sound.playNote(Sound.PIANO, 440, 200);
 		stopMotors();
@@ -105,12 +113,16 @@ public class UltrasonicLocalizer extends Thread{
 		
 		//getting thetaB: angle of vertical wall
 		//rotate CW to get angle B (where thetaA < thetaB)
-		while (filterDistance(currentDistance) > threshold - noiseMargin ) {
-			rotateCW();
+
+		rotateCW();
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		while (filterDistance(currentDistance) < threshold ) {
-			rotateCW();
-		}
+		
+		while (usPoller.getDistance() < threshold );
 		// stop the motors and return the angle
 		Sound.playNote(Sound.PIANO, 440, 200);
 		stopMotors();
@@ -123,12 +135,15 @@ public class UltrasonicLocalizer extends Thread{
 	public void fallingEdge() {
 		//getting thetaA: angle of horizontal wall
 		//rotate CW to get angle A (where thetaA < thetaB)
-		while (filterDistance(currentDistance) < threshold + noiseMargin ) {
-			rotateCW();
-		}
-		while (filterDistance(currentDistance) > threshold ) {
-			rotateCW();
-		}
+//		detectedWall = false;
+		rotateCW();
+		while (usPoller.getDistance() < threshold + noiseMargin ); //wait while it is facing wall
+		
+		rotateCW();
+		while (usPoller.getDistance() > threshold ); //wait while it's facing out
+		
+		//when it senses the wall at first:
+		
 		// stop the motors and return the angle
 		Sound.playNote(Sound.PIANO, 440, 200);
 		stopMotors();
@@ -136,14 +151,23 @@ public class UltrasonicLocalizer extends Thread{
 		//get the angle from the odometer; set as thetaA
 		thetaA = odometer.getTheta();
 		
+//		//TODO:
+//		detectedWall = true;
+		
 		//getting thetaB: angle of vertical wall
 		//rotate CCW to get angle B (where thetaA < thetaB)
-		while (filterDistance(currentDistance) < threshold + noiseMargin ) {
-			rotateCCW();
+		rotateCCW();
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		while (filterDistance(currentDistance) > threshold ) {
-			rotateCCW();
-		}
+		while (usPoller.getDistance() < threshold + noiseMargin );
+		rotateCCW();
+		
+		while (usPoller.getDistance() > threshold); 
+		
 		// stop the motors and return the angle
 		Sound.playNote(Sound.PIANO, 440, 200);
 		stopMotors();
@@ -154,16 +178,31 @@ public class UltrasonicLocalizer extends Thread{
 	
 	private double computeDeltaTheta(){
 		
-		//case 1
-		if(thetaA > thetaB){
-			deltaTheta = 45 - (thetaA + thetaB)/2.0;
+		if(localizationType == LocalizationType.FALLING_EDGE){
+			//case 1
+			if(thetaA > thetaB){
+				deltaTheta = 45 - (thetaA + thetaB)/2.0;
+			}
+			
+			//case 2
+			else {
+				deltaTheta = (255 + fallingThetaError) - ((thetaA + thetaB)/2.0);
+			}
+			//Sound.playNote(Sound.PIANO, 880, 200);
 		}
-		
-		//case 2
-		else {
-			deltaTheta = (255 + thetaError) - ((thetaA + thetaB)/2.0);
+		else{
+			//case 1
+			if(thetaA > thetaB){
+				deltaTheta = 225 - (thetaA + thetaB)/2.0;
+			}
+			
+			//case 2
+			else {
+				deltaTheta = (45 + risingThetaError) - ((thetaA + thetaB)/2.0);
+			}
+			//Sound.playNote(Sound.PIANO, 880, 200);
+			
 		}
-		//Sound.playNote(Sound.PIANO, 880, 200);
 		return deltaTheta;
 	}
 	
@@ -189,44 +228,47 @@ public class UltrasonicLocalizer extends Thread{
 		rightMotor.stop();
 	}
 	
-	private int filterDistance(int distance){
-	    // rudimentary filter - toss out invalid samples corresponding to null
-	    // signal.
-	    // (n.b. this was not included in the Bang-bang controller, but easily
-	    // could have).
-	    //
-		filteredDistance = distance;
-	    if (distance >= 255 && filterControl < filterOut) {
-	      // bad value, do not set the distance var, however do increment the
-	      // filter value
-	      filterControl++;
-	    } else if (distance >= 255) {
-	      // We have repeated large values, so there must actually be nothing
-	      // there: leave the distance alone
-	      filteredDistance = 300; //capped at 300
-	    } else {
-	      // distance went below 255: reset filter and leave
-	      // distance alone.
-	      filterControl = 0;
-	      filteredDistance = distance;
-	    }
-	    return filteredDistance;
-	}
-
-	/**
-	 *sets the distance as read by the US and by the usPoller
-	 * 
-	 */
-	public void setDistance(int distance) {
-		currentDistance = distance;
-	}
 	
-	public int getFilteredDistance() {
-		return filteredDistance;
-	}
+	//TODO:
+//	private int filterDistance(int distance){
+//	    // rudimentary filter - toss out invalid samples corresponding to null
+//	    // signal.
+//	    // (n.b. this was not included in the Bang-bang controller, but easily
+//	    // could have).
+//	    //
+//		filteredDistance = distance;
+//	    if (distance >= 255 && filterControl < filterOut) {
+//	      // bad value, do not set the distance var, however do increment the
+//	      // filter value
+//	      filterControl++;
+//	    } else if (distance >= 255) {
+//	      // We have repeated large values, so there must actually be nothing
+//	      // there: leave the distance alone
+//	      filteredDistance = 300; //capped at 300
+//	    } else {
+//	      // distance went below 255: reset filter and leave
+//	      // distance alone.
+//	      filterControl = 0;
+//	      filteredDistance = distance;
+//	    }
+//	    return filteredDistance;
+//	}
 	
-	public int getCurrentDistance() {
-		return currentDistance;
-		}
-	}
+//TODO:
+//	/**
+//	 *sets the distance as read by the US and by the usPoller
+//	 * 
+//	 */
+//	public void setDistance(int distance) {
+//		currentDistance = distance;
+//	}
+//	
+//	public int getFilteredDistance() {
+//		return filteredDistance;
+//	}
+//	
+//	public int getCurrentDistance() {
+//		return currentDistance;
+//		
+//	}
 }

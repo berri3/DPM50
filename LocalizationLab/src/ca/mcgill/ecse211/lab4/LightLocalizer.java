@@ -7,7 +7,7 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 
-public class LightLocalizer {
+public class LightLocalizer extends Thread {
 	
 	//motors and stuff
 	private NXTRegulatedMotor leftMotor;
@@ -58,6 +58,7 @@ public class LightLocalizer {
 	private double noiseMargin = LocalizationLab.NOISE_MARGIN;
 	private double sensorDistance = LocalizationLab.SENSOR_DISTANCE;
 	private double blackLine = LocalizationLab.BLACK_LINE;
+	private int defaultAcceleration = LocalizationLab.DEFAULT_ACCELERATION;
 	
 	
 	
@@ -78,7 +79,7 @@ public class LightLocalizer {
 		this.sampleLight = sampleLight;
 	}
 	
-	public void run(){
+	public void localize(){
 		
 		
 	    turn360();
@@ -105,8 +106,13 @@ public class LightLocalizer {
 	        }
 	    }
 	    
+	    //stop motors
+	    stopMotors();
+	    
 	    //compute & store correct position in odometer
 	    computePosition();
+	    
+	    
 	    
 	    //travel to *hopefully* (0,0)
 	    navigation.travelTo(0,0);
@@ -126,9 +132,17 @@ public class LightLocalizer {
 		rightMotor.setAcceleration(acceleration);
 		leftMotor.setSpeed(rotateSpeed);
 		rightMotor.setSpeed(rotateSpeed);
-		leftMotor.rotate(-Navigation.convertAngle(wheelRadius, track, 360), true);
-		rightMotor.rotate(Navigation.convertAngle(wheelRadius, track, 360));
+		leftMotor.backward();
+		rightMotor.forward();
 	}
+	
+	private void stopMotors(){
+		leftMotor.setAcceleration(defaultAcceleration);
+		rightMotor.setAcceleration(defaultAcceleration);
+		leftMotor.stop(true);
+		rightMotor.stop();
+	}
+	
 	
 	private void computePosition(){
 		double thetaY;

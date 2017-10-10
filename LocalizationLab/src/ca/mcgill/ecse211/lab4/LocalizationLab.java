@@ -120,7 +120,7 @@ public class LocalizationLab {
     if (buttonChoice == Button.ID_LEFT) { //do lightLocalizer
       odometer.start();
       display.start();
-      lightLocalizer.run();
+      lightLocalizer.localize();
 
     } else { //do usLocalizer
       // clear the display

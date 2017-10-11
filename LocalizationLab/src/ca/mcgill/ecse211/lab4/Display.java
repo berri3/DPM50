@@ -11,18 +11,15 @@ public class Display extends Thread {
   private static final long DISPLAY_PERIOD = 250;
   private Odometer odometer;
   private TextLCD t;
-//  private UltrasonicLocalizer ultrasonicLocalizer; TODO
   private LightLocalizer lightLocalizer;
   private UltrasonicPoller usPoller;
   private int leftMotorSpeed;
   private int rightMotorSpeed;
   private double heading;
-  
+
   // constructor
-  public Display(Odometer odometer, 
-		  TextLCD t, 
-		  UltrasonicPoller usPoller, 
-		  LightLocalizer lightLocalizer) {
+  public Display(Odometer odometer, TextLCD t, UltrasonicPoller usPoller,
+      LightLocalizer lightLocalizer) {
     this.odometer = odometer;
     this.t = t;
     this.usPoller = usPoller;
@@ -52,24 +49,24 @@ public class Display extends Thread {
       for (int i = 0; i < 3; i++) {
         t.drawString(formattedDoubleToString(position[i], 2), 3, i);
       }
-      
-      //display US distance
+
+      // display US distance
       t.drawString("US Distance: " + usPoller.getDistance(), 0, 3);
-      
-      //display light sensor information
+
+      // display light sensor information
       t.drawString("Light: " + lightLocalizer.getLightSensor(), 0, 4);
-      
-      //print on the LCD the current speed of the two motors
+
+      // print on the LCD the current speed of the two motors
       leftMotorSpeed = LocalizationLab.leftMotor.getRotationSpeed();
       rightMotorSpeed = LocalizationLab.rightMotor.getRotationSpeed();
-      
+
       t.drawString("Left mot.: " + leftMotorSpeed, 0, 5);
       t.drawString("Right mot.: " + rightMotorSpeed, 0, 6);
-      
-      //print heading to LCD
+
+      // print heading to LCD
       heading = Navigation.heading;
       t.drawString("Heading: " + heading, 0, 7);
-      
+
       // throttle the OdometryDisplay
       displayEnd = System.currentTimeMillis();
       if (displayEnd - displayStart < DISPLAY_PERIOD) {

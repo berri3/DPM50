@@ -11,13 +11,11 @@ import lejos.robotics.SampleProvider;
  */
 public class UltrasonicPoller extends Thread {
   private SampleProvider us;
-  private Navigation navigation;
-  private UltrasonicLocalizer ultrasonicLocalizer;
   private int distance;
   private float[] usData;
-  
-  private Object lock; /*lock object for mutual exclusion*/
-  
+
+  private Object lock; /* lock object for mutual exclusion */
+
 
   public UltrasonicPoller(SampleProvider us, float[] usData) {
     this.us = us;
@@ -36,40 +34,26 @@ public class UltrasonicPoller extends Thread {
     while (true) {
       us.fetchSample(usData, 0); // acquire data
       distance = (int) (usData[0] * 100.0); // extract from buffer, cast to int
-      
+
       synchronized (lock) {
-    	this.distance = distance;
+        this.distance = distance;
       }
-      //TODO:
-//      //set the distance in the appropriate classes
-//      navigation.setDistance(distance);
-//      ultrasonicLocalizer.setDistance(distance);
-      
+
       try {
         Thread.sleep(50);
       } catch (Exception e) {
       } // Poor man's timed sampling
     }
   }
-  
-  public int getDistance(){
-	int result;
 
-	  synchronized (lock) {
-	    result = distance;
-	  }
+  public int getDistance() {
+    int result;
 
-	return result;
+    synchronized (lock) {
+      result = distance;
+    }
+
+    return result;
   }
-  
-  
-  //TODO:
-//  public void addNavigation(Navigation aNavigation) {
-//	  navigation = aNavigation;
-//  }
-//  
-//  public void addUltrasonicLocalizer(UltrasonicLocalizer aUSLocalizer) {
-//	  ultrasonicLocalizer = aUSLocalizer;
-//  }
 
 }

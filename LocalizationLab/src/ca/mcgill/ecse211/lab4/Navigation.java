@@ -34,7 +34,7 @@ public class Navigation extends Thread {
 
   // in order to start the thread
   public void run() {
-    // TODO: wait for other method calls tbh lmao
+    // we do not need to execute navigation in this lab
   }
 
   public void travelTo(double pointX, double pointY) {

@@ -9,7 +9,7 @@ public class UltrasonicLocalizer extends Thread {
   public enum LocalizationType {
     FALLING_EDGE, RISING_EDGE
   }
-  
+
   private LocalizationType localizationType; // chosen type, as passed in from the main program
 
   // motors and stuff
@@ -31,9 +31,10 @@ public class UltrasonicLocalizer extends Thread {
   private int defaultAcceleration = LocalizationLab.DEFAULT_ACCELERATION;
   private int threshold = LocalizationLab.THRESHOLD;
   private int noiseMargin = LocalizationLab.NOISE_MARGIN;
-  
-  //class-specific constants
-  private static final int FALLING_THETA_ERROR_1 = -20; // TODO
+
+  // class-specific constants
+  private static final int FALLING_THETA_ERROR_1 = -20; // Error to correct the given 45° and 255°
+                                                        // values by
   private static final int RISING_THETA_ERROR_1 = -30;
   private static final int RISING_THETA_ERROR_2 = -20;
 
@@ -49,21 +50,20 @@ public class UltrasonicLocalizer extends Thread {
     this.navigation = aNavigation;
     this.usPoller = usPoller;
   }
-  
-  
-  
+
   /**
-   * Main method
+   * Main method: performs ultrasonic localization
+   * 
    * @param aLocalizationType The type (rising/falling edge) of localization wanted
    */
   public void localize(LocalizationType aLocalizationType) {
-    
-    sensorMotor.stop(); //prevent the sensor motor from moving
-    
-    //set the chosen localization type
+
+    sensorMotor.stop(); // prevent the sensor motor from moving
+
+    // set the chosen localization type
     localizationType = aLocalizationType;
-    
-    //set the appropriate acceleration
+
+    // set the appropriate acceleration
     leftMotor.setAcceleration(acceleration);
     rightMotor.setAcceleration(acceleration);
 
@@ -90,17 +90,17 @@ public class UltrasonicLocalizer extends Thread {
    * Executes the rising edge way of identifying walls
    */
   public void risingEdge() {
-   
+
     // 1. getting thetaA: angle of horizontal wall is seen (where thetaA < thetaB)
-    
+
     // start rotating CCW
     rotateCCW();
-    
-    //check: what if we started not facing a wall?
-    //wait until the US says that we're not anymore
+
+    // check: what if we started not facing a wall?
+    // wait until the US says that we're not anymore
     while (usPoller.getDistance() > threshold - noiseMargin);
-    
-    //continue rotating cuz why not
+
+    // continue rotating cuz why not
     rotateCCW();
     // sleep to avoid detecting a re-detection.
     try {
@@ -108,10 +108,10 @@ public class UltrasonicLocalizer extends Thread {
     } catch (InterruptedException e1) {
       e1.printStackTrace();
     }
-    
+
     // more wait while it's still seeing a wall
-    while (usPoller.getDistance() < threshold); 
-    
+    while (usPoller.getDistance() < threshold);
+
     // a rising edge has been detected!!!
     // stop the motors
     Sound.playNote(Sound.PIANO, 440, 200);
@@ -121,7 +121,9 @@ public class UltrasonicLocalizer extends Thread {
     thetaA = odometer.getTheta();
 
     // 2. getting thetaB: angle of vertical wall (where thetaA < thetaB)
-    
+
+    rotateCW();
+    while (usPoller.getDistance() > threshold - noiseMargin);
     // rotate CW
     rotateCW();
     // more sleeping to avoid re-detecting the same wall/detecting a false non-wall
@@ -130,10 +132,10 @@ public class UltrasonicLocalizer extends Thread {
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-    
+
     // more waiting
     while (usPoller.getDistance() < threshold);
-    
+
     // another rising edge has been detected!!!
     // stop the motors
     Sound.playNote(Sound.PIANO, 440, 200);
@@ -142,22 +144,22 @@ public class UltrasonicLocalizer extends Thread {
     // get the angle from the odometer; store as thetaB
     thetaB = odometer.getTheta();
   }
-  
+
   /**
    * Executes the rising edge way of identifying walls
    */
   public void fallingEdge() {
-    
+
     // 1. getting thetaA: angle of horizontal wall is seen (where thetaA < thetaB)
-    
+
     // start rotating CW
     rotateCW();
-    
-    //check: what if we started already facing a wall?
-    //wait until the US says that we're not anymore
+
+    // check: what if we started already facing a wall?
+    // wait until the US says that we're not anymore
     while (usPoller.getDistance() < threshold + noiseMargin);
-    
-    //continue rotating cuz why not
+
+    // continue rotating cuz why not
     rotateCW();
     // sleep to avoid re-detection
     try {
@@ -165,10 +167,10 @@ public class UltrasonicLocalizer extends Thread {
     } catch (InterruptedException e1) {
       e1.printStackTrace();
     }
-    
+
     // more wait while it's still seeing a wall
-    while (usPoller.getDistance() > threshold); 
-    
+    while (usPoller.getDistance() > threshold);
+
     // a falling edge has been detected!!!
     // stop the motors
     Sound.playNote(Sound.PIANO, 440, 200);
@@ -178,8 +180,10 @@ public class UltrasonicLocalizer extends Thread {
     thetaA = odometer.getTheta();
 
     // 2. getting thetaB: angle of vertical wall (where thetaA < thetaB)
-    
+
     // rotate CCW
+    rotateCCW();
+    while (usPoller.getDistance() < threshold + noiseMargin);
     rotateCCW();
     // more sleeping to avoid re-detecting the same wall/detecting a false non-wall
     try {
@@ -187,10 +191,10 @@ public class UltrasonicLocalizer extends Thread {
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-    
+
     // more waiting
     while (usPoller.getDistance() > threshold);
-    
+
     // another falling edge has been detected!!!
     // stop the motors
     Sound.playNote(Sound.PIANO, 440, 200);
@@ -201,8 +205,9 @@ public class UltrasonicLocalizer extends Thread {
   }
 
   /**
-   * Computes the change of angle to be added to the odometer after rising/falling edge
-   * has been executed
+   * Computes the change of angle to be added to the odometer after rising/falling edge has been
+   * executed
+   * 
    * @return deltaTheta
    */
   private double computeDeltaTheta() {
@@ -218,15 +223,20 @@ public class UltrasonicLocalizer extends Thread {
         deltaTheta = (255 + FALLING_THETA_ERROR_1) - ((thetaA + thetaB) / 2.0);
       }
 
-    } else { //TODO:
+    } else {
       // case 1
       if (thetaA > thetaB) {
         deltaTheta = 45 - (thetaA + thetaB) / 2.0;
       }
 
       // case 2
-      else {
+      else if (thetaA < 180) {
         deltaTheta = (255 + RISING_THETA_ERROR_1) - ((thetaA + thetaB) / 2.0);
+      }
+
+      // case 3
+      else {
+        deltaTheta = (255 + RISING_THETA_ERROR_2) - ((thetaA + thetaB) / 2.0);
       }
     }
     return deltaTheta;

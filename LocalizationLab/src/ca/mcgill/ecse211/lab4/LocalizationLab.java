@@ -35,12 +35,12 @@ public class LocalizationLab {
   public static final int DEFAULT_ACCELERATION = 6000; // as set by the EV3/leJOS
   public static final int THRESHOLD = 50; // distance threshold before considering wall seen (cm)
   public static final int NOISE_MARGIN = 20; // to account for the noise in the usLocalizer (cm)
-  public static final long CORRECTION_PERIOD = 10; // TODO
-  public static final double BLACK_LINE = 13.0; // value corresponding to the signal returned
+  public static final long CORRECTION_PERIOD = 10;
+  public static final double BLACK_LINE = 12.5; // value corresponding to the signal returned
                                                 // to the light sensor by a black line
   public static final double SENSOR_DISTANCE = 13.0; // distance between the light sensor and the
                                                      // robot's center of rotation (cm)
-  public static final int FILTER_OUT = 50; // TODO: used to filter the US
+  public static final int FILTER_OUT = 50; // used to filter the US
 
   public static void main(String[] args) {
     int buttonChoice;
@@ -97,9 +97,18 @@ public class LocalizationLab {
     if (buttonChoice == Button.ID_LEFT) { // do lightLocalizer
       odometer.start();
       display.start();
-      lightLocalizer.localize(false);
 
-    } else { // do usLocalizer
+      leftMotor.setSpeed(ROTATE_SPEED);
+      rightMotor.setSpeed(ROTATE_SPEED);
+      leftMotor.rotate(Navigation.convertAngle(-WHEEL_RADIUS, TRACK, 360), true);
+      rightMotor.rotate(Navigation.convertAngle(WHEEL_RADIUS, TRACK, 360), false);
+
+      leftMotor.setAcceleration(DEFAULT_ACCELERATION);
+      rightMotor.setAcceleration(DEFAULT_ACCELERATION);
+      leftMotor.stop(true);
+      rightMotor.stop();
+
+    } else { // testing: just turn 360°
       // clear the display
       t.clear();
 
@@ -138,14 +147,15 @@ public class LocalizationLab {
       t.drawString("   (or down)    ", 0, 4);
 
       buttonChoice = Button.waitForAnyPress();
-    } while (buttonChoice != Button.ID_ENTER && buttonChoice != Button.ID_DOWN); // wait for user
-                                                                              // to start light localization
-    if (buttonChoice == Button.ID_ENTER) { //do not fix position
+    } while (buttonChoice != Button.ID_ENTER && buttonChoice != Button.ID_DOWN); // wait for user to
+                                                                                 // start light
+                                                                                 // localization
+    if (buttonChoice == Button.ID_ENTER) { // do not fix position
       lightLocalizer.localize(false);
     }
 
     else {
-      lightLocalizer.localize(true); //fix that position
+      lightLocalizer.localize(true); // fix that position
     }
 
     while (Button.waitForAnyPress() != Button.ID_ESCAPE);

@@ -26,11 +26,11 @@ public class UltrasonicLocalizer extends Thread {
   private double deltaTheta;
 
   // some constants (as per the main class; refer for description)
-  private int rotateSpeed = LocalizationLab.ROTATE_SPEED;
-  private int acceleration = LocalizationLab.MOTOR_ACCELERATION;
-  private int defaultAcceleration = LocalizationLab.DEFAULT_ACCELERATION;
-  private int threshold = LocalizationLab.THRESHOLD;
-  private int noiseMargin = LocalizationLab.NOISE_MARGIN;
+  private static int rotateSpeed = LocalizationLab.ROTATE_SPEED;
+  private static int acceleration = LocalizationLab.MOTOR_ACCELERATION;
+  private static int defaultAcceleration = LocalizationLab.DEFAULT_ACCELERATION;
+  private static int threshold = LocalizationLab.THRESHOLD;
+  private static int noiseMargin = LocalizationLab.NOISE_MARGIN;
 
   // class-specific constants
   private static final int FALLING_THETA_ERROR_1 = -20; // Error to correct the given 45° and 255°

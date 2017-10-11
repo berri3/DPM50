@@ -16,12 +16,12 @@ public class Navigation extends Thread {
                                 // needed)
 
   // some constants (as per the main class; refer for description)
-  private double tileLength = LocalizationLab.TILE_LENGTH;
-  private int forwardSpeed = LocalizationLab.MOTOR_HIGH;
-  private double wheelRadius = LocalizationLab.WHEEL_RADIUS;
-  private double track = LocalizationLab.TRACK;
-  private int rotateSpeed = LocalizationLab.ROTATE_SPEED;
-  private int acceleration = LocalizationLab.MOTOR_ACCELERATION;
+  private static double tileLength = LocalizationLab.TILE_LENGTH;
+  private static int forwardSpeed = LocalizationLab.MOTOR_HIGH;
+  private static double wheelRadius = LocalizationLab.WHEEL_RADIUS;
+  private static double track = LocalizationLab.TRACK;
+  private static int rotateSpeed = LocalizationLab.ROTATE_SPEED;
+  private static int acceleration = LocalizationLab.MOTOR_ACCELERATION;
 
 
   // constructor

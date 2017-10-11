@@ -30,20 +30,20 @@ public class LightLocalizer extends Thread {
   private double thetaX;
 
   // some constants (as per the main class; refer for description)
-  private int forwardSpeed = LocalizationLab.MOTOR_HIGH;
-  private int rotateSpeed = LocalizationLab.ROTATE_SPEED;
-  private int acceleration = LocalizationLab.MOTOR_ACCELERATION;
-  private double wheelRadius = LocalizationLab.WHEEL_RADIUS;
-  private double track = LocalizationLab.TRACK;
-  private double sensorDistance = LocalizationLab.SENSOR_DISTANCE;
-  private double blackLine = LocalizationLab.BLACK_LINE;
-  private int defaultAcceleration = LocalizationLab.DEFAULT_ACCELERATION;
+  private static int forwardSpeed = LocalizationLab.MOTOR_HIGH;
+  private static int rotateSpeed = LocalizationLab.ROTATE_SPEED;
+  private static int acceleration = LocalizationLab.MOTOR_ACCELERATION;
+  private static double wheelRadius = LocalizationLab.WHEEL_RADIUS;
+  private static double sensorDistance = LocalizationLab.SENSOR_DISTANCE;
+  private static double blackLine = LocalizationLab.BLACK_LINE;
+  private static int defaultAcceleration = LocalizationLab.DEFAULT_ACCELERATION;
 
   // class-specific constants
   private static final double TRAVEL_DISTANCE = 11; // distance to adjust the robot by at the
-  private static final double ANGLE_THRESHOLD = 1;
-  private static final double STOP_ANGLE = 45;
-  // beginning
+                                                    // beginning
+  private static final double ANGLE_THRESHOLD = 1; // in order to stop the robot when turning 
+  private static final double STOP_ANGLE = 45; // since the robot starts spinning at 45°
+
 
   // constructor
   public LightLocalizer(NXTRegulatedMotor leftMotor, NXTRegulatedMotor rightMotor,
@@ -118,7 +118,7 @@ public class LightLocalizer extends Thread {
 
     // compute & store correct position and angle in odometer
     computePosition();
-    // computeAngle(); // TODO
+    computeAngle();
 
     // wait more. slow and steady wins the race.
     try {

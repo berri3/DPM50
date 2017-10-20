@@ -13,7 +13,7 @@ import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 
-public class ZipLineLab {
+public class LocalizationLab {
 
   // get instances of the motors and sensors with their respective ports
   public static final NXTRegulatedMotor leftMotor =
@@ -27,7 +27,7 @@ public class ZipLineLab {
 
   // some constants
   public static final double WHEEL_RADIUS = 2.1; // in cm
-  public static final double TRACK = 15; // distance between the two wheels in cm
+  public static final double TRACK = 14.1; // distance between the two wheels in cm
   public static final double TILE_LENGTH = 30.48; // in cm, as provided
   public static final int MOTOR_HIGH = 110; // Default forward speed (deg/sec)
   public static final int ROTATE_SPEED = 75; // in deg/s
